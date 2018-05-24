@@ -98,15 +98,11 @@ private:
 
     QString comment(QString content);
 
+    void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center,double ra,double rb, double E, double dL, int n, int mode, double offset=0);
     void draw_lineCreneaux(QPainterPath & pts, const QLineF & line, double E, double dL, int n, int mode, double offset=0);
     void draw_Line(QPainter & painter,const QPointF & pa,const QPointF & pb);
 
     QTransform transform;//Global transform
-
-    double getAngle()
-    {
-        return atan2(transform.m21(),transform.m11())*180/M_PI;
-    }
 
     Displayer * displayer;
 

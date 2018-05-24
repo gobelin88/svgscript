@@ -145,12 +145,12 @@ Base Object::getBase(const Face & f)
     return b;
 }
 
-Vector2d Object::getCoord(const Base & b,Vector3d p,Vector3d bary)
+Vector2d Object::getCoord2D(const Base & b,Vector3d p,Vector3d bary)
 {
     return Vector2d( b.U.dot(p-bary), b.V.dot(p-bary) );
 }
 
-Vector3d Object::getCoord(Base & b,Vector2d p,Vector3d bary)
+Vector3d Object::getCoord3D(Base & b,Vector2d p,Vector3d bary)
 {
     return bary+b.U*p.x()+b.V*p.y();
 }
@@ -172,7 +172,7 @@ QRectF Object::getSpan(Face f,Vector3d bary,const Base & b)
 
     for(int i=0;i<f.size();i++)
     {
-        Vector2d p2D=getCoord(b,pts[f[i]],bary);
+        Vector2d p2D=getCoord2D(b,pts[f[i]],bary);
 
         if(p2D.x()<minX)minX=p2D.x();
         if(p2D.x()>maxX)maxX=p2D.x();
@@ -283,7 +283,7 @@ void Object::getFaceGnomonic(QPainter & painter,
 
     for(int i=0;i<f.size();i++)
     {
-        Vector2d pA=getCoord(b,pts[f[i]],bary);
+        Vector2d pA=getCoord2D(b,pts[f[i]],bary);
         Vector2d pt(pA.x()+center.x(), pA.y()+center.y() );
         poly.append(QPointF(pt.x(),pt.y()));
         polyg.append(QPointF(pA.x(),pA.y()));
@@ -315,7 +315,7 @@ void Object::getFaceGnomonic(QPainter & painter,
 
             if( polyg.containsPoint(QPointF(x,y),Qt::OddEvenFill) )//-1 ???
             {
-                Vector2d p_gno=getGnomonic(getCoord(b,Vector2d(x,y),bary));
+                Vector2d p_gno=getGnomonic(getCoord3D(b,Vector2d(x,y),bary));
 
                 if(p_gno.x()<=1 && p_gno.y()<=1)
                 {

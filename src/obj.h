@@ -42,8 +42,8 @@ private:
     //Misc
     void computeNormals();
     Base getBase(const Face & f);
-    Vector2d getCoord(const Base &b, Vector3d p, Vector3d bary);
-    Vector3d getCoord(Base & b,Vector2d p,Vector3d bary);
+    Vector2d getCoord2D(const Base &b, Vector3d p, Vector3d bary);
+    Vector3d getCoord3D(Base & b,Vector2d p,Vector3d bary);
     Vector3d getBarycenter(const Face &f);
     QRectF getSpan(Face f, Vector3d bary, const Base &b);
     void getFaceGnomonic(QPainter & painter,

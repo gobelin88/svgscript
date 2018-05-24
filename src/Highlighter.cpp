@@ -10,7 +10,6 @@ Highlighter::Highlighter(QTextDocument *parent)
     QStringList keywordPatterns;
 
 //    << "\\bDRAW_LINES\\b"
-//                        << "\\bDRAW_POLYGON\\b"
 //                        << "\\bSVG_LOAD\\b"
 //                        << "\\bFRACTALE_TREE\\b"
 //                        << "\\bFRACTALE_VON_KOCH\\b"
@@ -18,7 +17,6 @@ Highlighter::Highlighter(QTextDocument *parent)
 //                        << "\\bDRAW_TEXT\\b"
 //                        << "\\bTRANSFORM_ROTATE\\b"
 //                        << "\\bTRANSFORM_SCALE\\b"
-//                        << "\\bDRAW_LINE_ROSACE\\b"
 //                        << "\\bDRAW_LINE_ROSACE_W\\b"
 //                        << "\\bIMG_LOAD\\b"
 //                        << "\\bTRANSFORM_TRANSLATE\\b";
@@ -35,7 +33,8 @@ Highlighter::Highlighter(QTextDocument *parent)
     subkeywordFormat.setForeground(Qt::cyan);
     subkeywordFormat.setFontWeight(QFont::Bold);
     QStringList subkeywordPatterns;
-    subkeywordPatterns << "\\bNone\\b"<< "\\bSolid\\b"<< "\\bDash\\b" << "\\bDot\\b"<<"\\bMath\\b"<<"\\bArial\\b"<<"\\bHelvetica\\b"<<"\\bTimes\\b";
+    subkeywordPatterns << "\\bNone\\b"<< "\\bSolid\\b"<< "\\bDash\\b" << "\\bDot\\b"<<"\\bMath\\b"
+                       <<"\\bArial\\b"<<"\\bHelvetica\\b"<<"\\bTimes\\b"<<"\\bRoman\\b"<<"\\bCourier\\b";
 
     foreach (const QString &pattern, subkeywordPatterns) {
         rule.pattern = QRegularExpression(pattern);
