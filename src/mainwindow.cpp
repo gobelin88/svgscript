@@ -982,7 +982,6 @@ Err MainWindow::process(QStringList content)
                     slider->set_value(exp(args[2]));
                     connect(slider,SIGNAL(valueChanged(int)),slider,SLOT(updateValue(int)));
 
-                    std::cout<<slider->name().toLocal8Bit().data()<<" ("<<slider->get_value()<<") "<<std::endl;
                     pe->globalObject().setProperty(slider->name(),slider->get_value());
                 }
 
