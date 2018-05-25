@@ -220,6 +220,13 @@ double evalEllipticStep(double ra,double rb,double theta,double dt)
     return p;
 }
 
+double evalEllipticStepB(double ra,double rb,double theta,double dt)
+{
+    double x1=ra*cos(theta),y1=rb*sin(theta);
+    double x2=ra*cos(theta+dt),y2=rb*sin(theta+dt);
+    return sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+}
+
 double getEllipticStep(double ra,double rb,double theta,double dL)
 {
     double step=0.0;
@@ -228,11 +235,33 @@ double getEllipticStep(double ra,double rb,double theta,double dL)
     {
         double x1=ra*cos(theta),y1=rb*sin(theta);
         step+=0.1*(dL-L)/sqrt(x1*x1+y1*y1);
-        L=evalEllipticStep(ra,rb,theta,step);
+        L=evalEllipticStepB(ra,rb,theta,step);
     }
     while ( std::abs(L-dL)>1e-6 );
 
     return step;
+}
+
+double getEllipticStepL(double ra,double rb,double dL,int N)
+{
+    double Lstep=dL*2;
+
+    double theta=0,dt=0;
+    do
+    {
+        theta=0.0;
+        for(int i=0;i<N;i++)
+        {
+            theta+=getEllipticStep(ra,rb,theta,Lstep);
+        }
+        dt=2*M_PI-theta;
+
+        if(dt>0){Lstep+=0.5*evalEllipticStep(ra,rb,theta,dt)/N;}
+        else{Lstep-=0.5*evalEllipticStep(ra,rb,0,std::abs(dt))/N;}
+    }
+    while( std::abs(dt)>1e-6 );
+
+    return Lstep;
 }
 
 void MainWindow::draw_ellipseCreneaux(
@@ -246,8 +275,11 @@ void MainWindow::draw_ellipseCreneaux(
         int mode,
         double offset)
 {
-    double minL=1e10;
-    double maxL=-1e10;
+    if(n>=0 && n<3)return;
+    if(rb<ra/10)return;
+    if(ra<rb/10)return;
+    if(ra<0)return;
+    if(rb<0)return;
 
     double Le=getEllipsePerimetre(ra,rb);
     //Calcul du nombre de creneaux dans L
@@ -255,7 +287,7 @@ void MainWindow::draw_ellipseCreneaux(
 
     double theta=0;
 
-    double Lstep=Le/N;
+    double Lstep=getEllipticStepL(ra,rb,dL,N);//Le/N;
 
     for(int i=0;i<N;i++)
     {
@@ -267,9 +299,6 @@ void MainWindow::draw_ellipseCreneaux(
 
         QLineF line(center+QPointF(x1,y1),center+QPointF(x2,y2));
         double L=line.length();
-
-        if (L>maxL)maxL=L;
-        if (L<minL)minL=L;
 
         //Base
         QPointF u(line.dx()/L,line.dy()/L);
@@ -289,7 +318,9 @@ void MainWindow::draw_ellipseCreneaux(
 
     }
 
-    this->te_console->append(QString("minL=%1  maxL=%2  N=%3").arg(minL).arg(maxL).arg(N));
+    this->te_console->append(QString("DEFINE Lstep=%1  Nstep=%2").arg(Lstep).arg(N));
+    pe->globalObject().setProperty("Lstep",Lstep);
+    pe->globalObject().setProperty("Nstep",N);
 }
 
 void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double E,double dL,int n,int mode,double offset)
