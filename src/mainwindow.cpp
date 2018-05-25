@@ -125,6 +125,17 @@ void MainWindow::slot_direct_save()
     }
 }
 
+void MainWindow::removeSlider(QString varname)
+{
+    for(int i=0;i<sliderlist.size();i++)
+    {
+        if(sliderlist[i]->name()==varname)
+        {
+            sliderlist.removeAt(i);
+        }
+    }
+}
+
 void MainWindow::slot_modified()
 {
     this->setWindowTitle(QString("SvgScript %1 - ").arg(version)+current_file_path +tr("*"));
@@ -950,6 +961,32 @@ Err MainWindow::process(QStringList content)
             else if(args.size()==2 && args[0]==QString("DISP"))//Ok
             {
                 te_console->append(QString("%1=%2").arg(args[1]).arg(exp(args[1])));
+            }
+            else if(args.size()==5 && args[0]==QString("SLIDE"))
+            {
+                MyQSlider * slider=NULL;
+                for(int i=0;i<sliderlist.size();i++)
+                {
+                    if(sliderlist[i]->name()==args[1])
+                    {
+                        slider=sliderlist[i];
+                    }
+                }
+
+                if(!slider)
+                {
+                    slider=new MyQSlider(args[1],exp(args[3]),exp(args[4]),this);
+                    sliderlist.append(slider);
+                    connect(slider,SIGNAL(deleted(QString)),this,SLOT(removeSlider(QString)));
+                    slider->show();
+                    slider->set_value(exp(args[2]));
+                    connect(slider,SIGNAL(valueChanged(int)),slider,SLOT(updateValue(int)));
+
+                    std::cout<<slider->name().toLocal8Bit().data()<<" ("<<slider->get_value()<<") "<<std::endl;
+                    pe->globalObject().setProperty(slider->name(),slider->get_value());
+                }
+
+                pe->globalObject().setProperty(slider->name(),slider->get_value());
             }
             else if(args.size()==3 && args[0]==QString("DEFINE"))//Ok
             {

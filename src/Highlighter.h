@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 30
+#define NB_CMD 31
 static const Command CommandsList[NB_CMD]={
     Command("HELP",              QObject::tr("Lol")),
 
@@ -24,6 +24,7 @@ static const Command CommandsList[NB_CMD]={
     Command("SVG_BRUSH",         QObject::tr("r v b t:\n\nDéfinit la couleur (r,v,b) et le type (t) du pinceau. (t) peut prendre les valeurs (None,Solid).")),
 
     Command("DEFINE",            QObject::tr("var value :\n\nDéfinition ou modification d'une variable (var) avec la valeur (val).")),
+    Command("SLIDE",             QObject::tr("var value min max:\n\nDéfinition ou modification d'une variable (var) avec la valeur (val) plus slider (min,max).")),
     Command("DISP",              QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
     Command("LABEL",             QObject::tr("var:\n\nDéfinit une étiquette (var). voir GOTO.")),
     Command("GOTO",              QObject::tr("var val:\n\nSe rend à l'étiquette (var) tant que (var) n'est pas égale à (val). voir LABEL.")),
@@ -51,6 +52,8 @@ static const Command CommandsList[NB_CMD]={
 
     Command("TEXT_FONT",QObject::tr("police taille :\n\n (police)=Arial Helvetica Times Roman")),
     Command("TEXT",QObject::tr("x y text (arg1) (arg2) :\n\n Dessine un text avec de possible arguments arg1 et arg2 aux endroits spécifiés pas %1 et %2")),
+
+
 
     Command("PROJECT_OBJECT",    QObject::tr("file.obj ..."))
 };

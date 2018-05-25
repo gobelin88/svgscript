@@ -18,12 +18,15 @@
 #include <QHBoxLayout>
 #include <QScrollArea>
 #include <obj.h>
+#include <QSlider>
 
 #include <displayer.h>
 
 #include <Eigen/Dense>
 
 #include "Highlighter.h"
+
+class MyQSlider;
 
 struct Err
 {
@@ -61,6 +64,8 @@ public:
                                 Vector3d euler_angles,
                                 double radius, int idpN, int idpS, double W, double dL, double dA, double marge);
 
+    QScriptEngine *engine(){return pe;}
+
 public slots:
     void slot_load();
     void slot_save();
@@ -68,6 +73,7 @@ public slots:
     void slot_direct_save();
     void slot_direct_load(QString filename);
     void slot_modified();
+    void removeSlider(QString varname);
 
 private:
     Ui::MainWindow *ui;
@@ -107,6 +113,55 @@ private:
     Displayer * displayer;
 
     QString version;
+
+    QList<MyQSlider*> sliderlist;
+};
+
+class MyQSlider:public QSlider
+{
+    Q_OBJECT
+public:
+    MyQSlider(QString varname,double min,double max,MainWindow * gui):QSlider(Qt::Horizontal)
+    {
+        this->gui=gui;
+        this->setRange(0,1000);
+        this->min=min;
+        this->max=max;
+        this->varname=varname;
+        this->setAttribute( Qt::WA_DeleteOnClose );
+    }
+    ~MyQSlider()
+    {
+        emit deleted(varname);
+    }
+
+    QString name(){return varname;}
+
+    double get_value(){return valuef;}
+
+    void set_value(double valuef)
+    {
+        int valuei=(valuef-min)*1000/(max-min);
+        this->valuef=valuef;
+        this->setWindowTitle(varname+QString("=%1").arg(valuef));
+        this->setValue(valuei);
+    }
+
+public slots:
+    void updateValue(int valuei)
+    {
+        valuef=valuei*(max-min)/1000+min;
+        this->setWindowTitle(varname+QString("=%1").arg(valuef));
+        gui->slot_run();
+    }
+
+signals:
+    void deleted(QString varname);
+
+private:
+    QString varname;
+    double min,max,valuef;
+    MainWindow * gui;
 };
 
 #endif // MAINWINDOW_H

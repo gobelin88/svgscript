@@ -1,0 +1,40 @@
+DEFINE W 5;
+DEFINE dL W;
+DEFINE Ra 70;
+DEFINE Rb 50;
+DEFINE L 100;
+
+DEFINE M 10;
+DEFINE X Ra*$pi+M*2;
+DEFINE Y Rb+M;
+//---------------------------------------------------------------------------------------
+SVG_BEGIN Ra*$pi*2+2*M 400;
+
+SVG_PEN 255 0 0 0.5 Solid;
+
+DRAW_ELLIPSE_CRENEAUX X Y Ra Rb W dL 20 1;
+
+DEFINE K -Nstep/2;
+LABEL K;
+DRAW_RECT_CRENEAUX  X+K*Lstep Y+Ra+M  Lstep  L
+W dL 
+0 -1 0 -1
+ 2 -1 2 0;
+GOTO K Nstep/2;
+
+DRAW_LINE 
+X+K*Lstep Y+Ra+M
+X+K*Lstep Y+Ra+M+L;
+
+
+//Annotations en bleues ---------------------------------------------------------- 
+SVG_PEN 0 0 255 0.2 Solid;
+DRAW_LINE X-Ra Y X+Ra Y;
+DRAW_LINE X Y-Rb X Y+Rb;
+
+TEXT_FONT Arial 5;
+TEXT X+(K-1)*Lstep Y+Ra+M-W Lstep=%1 Lstep;
+TEXT  X-Ra*0.75 Y Ra=%1 Ra;
+TEXT X Y-Rb*0.75 Rb=%1 Rb;
+
+SVG_END;
