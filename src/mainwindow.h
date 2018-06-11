@@ -16,6 +16,7 @@
 #include <iostream>
 #include <QScriptEngine>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QScrollArea>
 #include <obj.h>
 #include <QSlider>
@@ -79,6 +80,7 @@ private:
     Ui::MainWindow *ui;
 
     QHBoxLayout * l_pb;
+    QVBoxLayout * slider_layout;
 
     QScrollArea * scroll;
 
@@ -115,20 +117,38 @@ private:
     QString version;
 
     QList<MyQSlider*> sliderlist;
+
+
 };
 
-class MyQSlider:public QSlider
+class MyQSlider:public QWidget
 {
     Q_OBJECT
 public:
-    MyQSlider(QString varname,double min,double max,MainWindow * gui):QSlider(Qt::Horizontal)
+    MyQSlider(QString varname,double min,double max,MainWindow * gui)
     {
+        slider=new QSlider(Qt::Horizontal,gui);
+        spin=new QDoubleSpinBox(gui);
+        spin->setFixedWidth(100);
+        spin->setPrefix(varname+QString("="));
+        spin->setRange(min,max);
+        pb_close=new QPushButton("X",this);
+
+
+        this->setMaximumWidth(400);
         this->gui=gui;
-        this->setRange(0,1000);
+        slider->setRange(0,1000);
         this->min=min;
         this->max=max;
         this->varname=varname;
         this->setAttribute( Qt::WA_DeleteOnClose );
+
+        QHBoxLayout * hlayout=new QHBoxLayout(this);
+        hlayout->addWidget(slider);
+        hlayout->addWidget(spin);
+        hlayout->addWidget(pb_close);
+
+        connect(pb_close,SIGNAL(clicked(bool)),this,SLOT(close()));
     }
     ~MyQSlider()
     {
@@ -143,17 +163,19 @@ public:
     {
         int valuei=(valuef-min)*1000/(max-min);
         this->valuef=valuef;
-        this->setWindowTitle(varname+QString("=%1").arg(valuef));
-        this->setValue(valuei);
+        spin->setValue(valuef);
+        slider->setValue(valuei);
     }
 
 public slots:
     void updateValue(int valuei)
     {
         valuef=valuei*(max-min)/1000+min;
-        this->setWindowTitle(varname+QString("=%1").arg(valuef));
+        spin->setValue(valuef);
         gui->slot_run();
     }
+
+    QSlider * obj(){return slider;}
 
 signals:
     void deleted(QString varname);
@@ -162,6 +184,10 @@ private:
     QString varname;
     double min,max,valuef;
     MainWindow * gui;
+
+    QSlider * slider;
+    QDoubleSpinBox * spin;
+    QPushButton * pb_close;
 };
 
 #endif // MAINWINDOW_H

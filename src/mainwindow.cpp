@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    version=QString("v3.1");
+    version=QString("v3.3");
 
     pe=NULL;
 
@@ -40,10 +40,13 @@ MainWindow::MainWindow(QWidget *parent) :
     l_pb->addWidget(pb_save);
     l_pb->addWidget(pb_run );
 
+    slider_layout=new QVBoxLayout();
+
     ui->gridLayout->addWidget(te_script,0,0);
     ui->gridLayout->addWidget(te_console,1,0);
-    ui->gridLayout->addLayout(l_pb,2,0);
-    ui->gridLayout->addWidget(scroll,0,1,3,1);
+    ui->gridLayout->addLayout(slider_layout,2,0);
+    ui->gridLayout->addLayout(l_pb,3,0);
+    ui->gridLayout->addWidget(scroll,0,1,4,1);
 
     connect(pb_load,SIGNAL(clicked()),this,SLOT(slot_load()));
     connect(pb_save,SIGNAL(clicked()),this,SLOT(slot_save()));
@@ -131,6 +134,7 @@ void MainWindow::removeSlider(QString varname)
     {
         if(sliderlist[i]->name()==varname)
         {
+            slider_layout->removeWidget(sliderlist[i]);
             sliderlist.removeAt(i);
         }
     }
@@ -320,13 +324,51 @@ void MainWindow::draw_ellipseCreneaux(
         double Eps=(L-(dL))/2.0;
 
         //On dessine tout cela
-        QPointF cp=line.p1();
-        cp+=u*Eps+offset*u;pts.lineTo(cp);
-        cp+=v*E;pts.lineTo(cp);
-        cp+=u*dL;pts.lineTo(cp);
-        cp-=v*E;pts.lineTo(cp);
-        cp+=u*Eps-offset*u;pts.lineTo(cp);
+        if(mode==2 || mode==1)
+        {
+            QPointF cp=line.p1();
+            cp+=u*Eps+offset*u;pts.lineTo(cp);
+            cp+=v*E;pts.lineTo(cp);
+            cp+=u*dL;pts.lineTo(cp);
+            cp-=v*E;pts.lineTo(cp);
+            cp+=u*Eps-offset*u;pts.lineTo(cp);
+        }
+        else if(mode==3)
+        {
+            QPointF cp0=line.p1();
+            QPointF cp1=cp0+u*Eps+offset*u;
+            QPointF cp2=cp1+v*E;
+            QPointF cp3=cp2+u*dL;
+            QPointF cp4=cp3-v*E;
+            QPointF cp5=cp4+u*Eps-offset*u;
+            QPointF cp6=cp2-(u*Eps+offset*u);
+            QPointF cp7=cp3+u*Eps-offset*u;
 
+            if(i==0)
+            {
+                pts.moveTo(QPointF(cp6.x(),cp6.y()-2*(cp6.y()-center.y())));
+            }
+
+            pts.lineTo(cp6);
+            pts.lineTo(cp2);
+            pts.lineTo(cp1);
+            pts.lineTo(cp0);
+            //pts.lineTo(cp0);
+
+            pts.moveTo(cp5);
+            pts.lineTo(cp4);
+            pts.lineTo(cp3);
+            pts.lineTo(cp7);
+            //pts.lineTo(cp4);
+        }
+    }
+
+    if(mode==3)
+    {
+        //pts.moveTo(center+QPointF((ra-E/2),0));
+        //pts.arcTo(QRectF(center.x()-(ra-E/2),center.y()-(rb-E/2),2*(ra-E/2),2*(rb-E/2)),0 ,360);
+        pts.moveTo(center+QPointF((ra+E*1.5),0));
+        pts.arcTo(QRectF(center.x()-(ra+E*1.5),center.y()-(rb+E*1.5),2*(ra+E*1.5),2*(rb+E*1.5)),0 ,360);
     }
 
     this->te_console->append(QString("DEFINE Lstep=%1  Nstep=%2").arg(Lstep).arg(N));
@@ -978,9 +1020,9 @@ Err MainWindow::process(QStringList content)
                     slider=new MyQSlider(args[1],exp(args[3]),exp(args[4]),this);
                     sliderlist.append(slider);
                     connect(slider,SIGNAL(deleted(QString)),this,SLOT(removeSlider(QString)));
-                    slider->show();
+                    slider_layout->addWidget(slider);
                     slider->set_value(exp(args[2]));
-                    connect(slider,SIGNAL(valueChanged(int)),slider,SLOT(updateValue(int)));
+                    connect(slider->obj(),SIGNAL(valueChanged(int)),slider,SLOT(updateValue(int)));
 
                     pe->globalObject().setProperty(slider->name(),slider->get_value());
                 }
