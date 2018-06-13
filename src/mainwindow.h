@@ -106,6 +106,7 @@ private:
 
     QString comment(QString content);
 
+    void draw_gear(QPainterPath & path,double x,double y,double dtooth,int ntooth,double e,double a);
     void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center,double ra,double rb, double E, double dL, int n, int mode, double offset=0);
     void draw_lineCreneaux(QPainterPath & pts, const QLineF & line, double E, double dL, int n, int mode, double offset=0);
     void draw_Line(QPainter & painter,const QPointF & pa,const QPointF & pb);
@@ -166,6 +167,8 @@ public:
         spin->setValue(valuef);
         slider->setValue(valuei);
     }
+
+
 
 public slots:
     void updateValue(int valuei)
