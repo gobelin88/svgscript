@@ -751,25 +751,92 @@ void MainWindow::calcGnomonicProjection(QPainter & painter,
     displayer->add(pobj);
 }
 
-void MainWindow::draw_gear(QPainterPath & path,double x,double y,double dtooth,int ntooth,double e,double a)
+void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,double alpha)
 {
-    if(ntooth>0)
+
+//    if(ntooth>0)
+//    {
+//        double dt=360.0/ntooth;
+//        double R=ntooth*dtooth/(2*M_PI);
+//        double Re=R+e;
+//        path.arcMoveTo(x-R,y-R,2*R,2*R,dt*(a*0.25));
+//        for(int i=0;i<ntooth;i++)
+//        {
+//            path.arcTo(x-R,y-R,2*R,2*R,dt*(i+a*0.25),dt*(0.5-a*0.5));
+//            path.arcTo(x-Re,y-Re,2*Re,2*Re,dt*(i+0.5+a*0.25),dt*(0.5-a*0.5));
+//        }
+//        path.lineTo(x+R*cos(dt*(a*0.25)*M_PI/180),y-R*sin(dt*(a*0.25)*M_PI/180));
+//        pe->globalObject().setProperty("R", R);
+//        this->te_console->append(QString("DEFINE R=%1").arg(R));
+//    }
+
+
+    double dp=m*n;                      //Diametre primitif
+    double db=dp*cos(alpha*TO_RAD);     //Diamètre de base
+    double p=M_PI*m;                    //Pas primitif
+    double pb=p*cos(alpha*TO_RAD);      //Pas de base
+
+    double df=dp-2.5*m;                 //Diamètre de pied
+    double dh=dp+2*m;                   //Diamètre de tête
+
+    //path.moveTo(x,y);
+    //path.addEllipse(x-dp/2,y-dp/2,dp,dp);
+    //path.addEllipse(x-df/2,y-df/2,df,df);
+    //path.addEllipse(x-dh/2,y-dh/2,dh,dh);
+
+    path.moveTo( QPointF(x+df*0.5,y) );
+
+    for(int k=0;k<n;k++)
     {
-        double dt=360.0/ntooth;
-        double R=ntooth*dtooth/(2*M_PI);
-        double Re=R+e;
+        QTransform rt;
+        rt.translate(x,y);
+        rt.rotate(k*360.0/n);
+        rt.translate(-x,-y);
 
-        path.arcMoveTo(x-R,y-R,2*R,2*R,dt*(a*0.25));
-        for(int i=0;i<ntooth;i++)
+        QTransform rt2;
+        rt2.translate(x,y);
+        rt2.rotate(k*360.0/n);
+        rt2.translate(-x,-y);
+
+        path.lineTo( rt.map(QPointF(x+df*0.5,y)) );
+        path.lineTo( rt.map(QPointF(x+db*0.5,y)) );
+        double step=2*M_PI/1800;
+        double rho=0.0;
+        double t=0.0;
+
+        do
         {
-            path.arcTo(x-R,y-R,2*R,2*R,dt*(i+a*0.25),dt*(0.5-a*0.5));
-            path.arcTo(x-Re,y-Re,2*Re,2*Re,dt*(i+0.5+a*0.25),dt*(0.5-a*0.5));
+            double X=(cos(t)+t*sin(t))*db*0.5;
+            double Y=(sin(t)-t*cos(t))*db*0.5;
+            rho=sqrt(X*X+Y*Y);
+            path.lineTo( rt.map(QPointF(x+X,y+Y)) );
+            t+=step;
         }
-        path.lineTo(x+R*cos(dt*(a*0.25)*M_PI/180),y-R*sin(dt*(a*0.25)*M_PI/180));
-
-        pe->globalObject().setProperty("R", R);
-        this->te_console->append(QString("DEFINE R=%1").arg(R));
+        while(rho<dh*0.5);
+        do
+        {
+            double X=(cos(t)+t*sin(t))*db*0.5;
+            double Y=-(sin(t)-t*cos(t))*db*0.5;
+            rho=sqrt(X*X+Y*Y);
+            path.lineTo( rt2.map(QPointF(x+X,y+Y)) );
+            t-=step;
+        }
+        while(t>0);
+        path.lineTo( rt2.map(QPointF(x+df*0.5,y)) );
     }
+    path.lineTo( QPointF(x+df*0.5,y) );
+
+    this->te_console->append("------------------------");
+    pe->globalObject().setProperty("Dp", dp);
+    pe->globalObject().setProperty("Dh", dh);
+    pe->globalObject().setProperty("Df", df);
+    pe->globalObject().setProperty("Db", db);
+    pe->globalObject().setProperty("Pb", pb);
+    this->te_console->append(QString("DEFINE Dp=%1").arg(dp));
+    this->te_console->append(QString("DEFINE Dh=%1").arg(dh));
+    this->te_console->append(QString("DEFINE Df=%1").arg(df));
+    this->te_console->append(QString("DEFINE Db=%1").arg(db));
+    this->te_console->append(QString("DEFINE Pb=%1").arg(pb));
 }
 
 Err MainWindow::process(QStringList content)
@@ -1432,10 +1499,10 @@ Err MainWindow::process(QStringList content)
                         Vector3d(exp(args[8]),exp(args[9]),exp(args[10])),exp(args[11]),exp(args[12]),exp(args[13])
                         ,exp(args[14]),exp(args[15]),exp(args[16]),exp(args[17]));
             }
-            else if(args.size()==7 && args[0]==QString("DRAW_GEAR"))
+            else if(args.size()==6 && args[0]==QString("DRAW_GEAR"))
             {
                 QPainterPath path;
-                draw_gear(path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
+                draw_gear( path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]));
                 painter.drawPath(transform.map(path));
             }
             else
