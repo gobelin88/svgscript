@@ -751,7 +751,7 @@ void MainWindow::calcGnomonicProjection(QPainter & painter,
     displayer->add(pobj);
 }
 
-void drawGear(QPainterPath & path,double x,double y,double dtooth,int ntooth,double e,double a)
+void MainWindow::draw_gear(QPainterPath & path,double x,double y,double dtooth,int ntooth,double e,double a)
 {
     if(ntooth>0)
     {
@@ -759,13 +759,16 @@ void drawGear(QPainterPath & path,double x,double y,double dtooth,int ntooth,dou
         double R=ntooth*dtooth/(2*M_PI);
         double Re=R+e;
 
-        path.arcMoveTo(x-R,y-R,2*R,2*R,dt*(ntooth-1+0.5+a*0.25));
+        path.arcMoveTo(x-R,y-R,2*R,2*R,dt*(a*0.25));
         for(int i=0;i<ntooth;i++)
         {
             path.arcTo(x-R,y-R,2*R,2*R,dt*(i+a*0.25),dt*(0.5-a*0.5));
             path.arcTo(x-Re,y-Re,2*Re,2*Re,dt*(i+0.5+a*0.25),dt*(0.5-a*0.5));
         }
+        path.lineTo(x+R*cos(dt*(a*0.25)*M_PI/180),y-R*sin(dt*(a*0.25)*M_PI/180));
 
+        pe->globalObject().setProperty("R", R);
+        this->te_console->append(QString("DEFINE R=%1").arg(R));
     }
 }
 
@@ -1429,10 +1432,10 @@ Err MainWindow::process(QStringList content)
                         Vector3d(exp(args[8]),exp(args[9]),exp(args[10])),exp(args[11]),exp(args[12]),exp(args[13])
                         ,exp(args[14]),exp(args[15]),exp(args[16]),exp(args[17]));
             }
-            else if (args.size()>=7 && args[0]==QString("DRAW_GEAR"))
+            else if(args.size()==7 && args[0]==QString("DRAW_GEAR"))
             {
                 QPainterPath path;
-                drawGear(path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
+                draw_gear(path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
                 painter.drawPath(transform.map(path));
             }
             else
