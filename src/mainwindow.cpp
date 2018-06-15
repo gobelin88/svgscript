@@ -778,31 +778,50 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
 
     double df=dp-2.5*m;                 //Diamètre de pied
     double dh=dp+2*m;                   //Diamètre de tête
+    double step=2*M_PI/1800;
+
+    double t=0.0,rho=0.0,delta_p;
+    do
+    {
+        double X=(cos(t)+t*sin(t))*db*0.5;
+        double Y=(sin(t)-t*cos(t))*db*0.5;
+        rho=sqrt(X*X+Y*Y);
+        delta_p=Y;
+        t+=step;
+    }
+    while(rho<dp*0.5);
+
+    double dalpha= (p+2*delta_p)*360/(M_PI*db)*0.5;
 
     //path.moveTo(x,y);
     //path.addEllipse(x-dp/2,y-dp/2,dp,dp);
     //path.addEllipse(x-df/2,y-df/2,df,df);
     //path.addEllipse(x-dh/2,y-dh/2,dh,dh);
 
-    path.moveTo( QPointF(x+df*0.5,y) );
+    QTransform rt,rt2;
+    rt.translate(x,y);
+    rt.rotate( -dalpha*0.5 );
+    rt.translate(-x,-y);
+
+    path.moveTo( rt.map(QPointF(x+df*0.5,y)) );
 
     for(int k=0;k<n;k++)
     {
-        QTransform rt;
+        rt.reset();
         rt.translate(x,y);
-        rt.rotate(k*360.0/n);
+        rt.rotate(  k*360.0/n-dalpha*0.5);
         rt.translate(-x,-y);
 
-        QTransform rt2;
+        rt2.reset();
         rt2.translate(x,y);
-        rt2.rotate(k*360.0/n);
+        rt2.rotate( k*360.0/n+dalpha*0.5);
         rt2.translate(-x,-y);
 
         path.lineTo( rt.map(QPointF(x+df*0.5,y)) );
         path.lineTo( rt.map(QPointF(x+db*0.5,y)) );
-        double step=2*M_PI/1800;
-        double rho=0.0;
-        double t=0.0;
+
+        rho=0.0;
+        t=0.0;
 
         do
         {
@@ -813,6 +832,7 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
             t+=step;
         }
         while(rho<dh*0.5);
+
         do
         {
             double X=(cos(t)+t*sin(t))*db*0.5;
@@ -824,7 +844,13 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
         while(t>0);
         path.lineTo( rt2.map(QPointF(x+df*0.5,y)) );
     }
-    path.lineTo( QPointF(x+df*0.5,y) );
+
+    rt2.reset();
+    rt2.translate(x,y);
+    rt2.rotate( -dalpha*0.5 );
+    rt2.translate(-x,-y);
+
+    path.lineTo( rt2.map( QPointF(x+df*0.5,y) ) );
 
     this->te_console->append("------------------------");
     pe->globalObject().setProperty("Dp", dp);
@@ -832,11 +858,13 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
     pe->globalObject().setProperty("Df", df);
     pe->globalObject().setProperty("Db", db);
     pe->globalObject().setProperty("Pb", pb);
+    pe->globalObject().setProperty("Pp", p);
     this->te_console->append(QString("DEFINE Dp=%1").arg(dp));
     this->te_console->append(QString("DEFINE Dh=%1").arg(dh));
     this->te_console->append(QString("DEFINE Df=%1").arg(df));
     this->te_console->append(QString("DEFINE Db=%1").arg(db));
     this->te_console->append(QString("DEFINE Pb=%1").arg(pb));
+    this->te_console->append(QString("DEFINE Pp=%1").arg(p));
 }
 
 Err MainWindow::process(QStringList content)
