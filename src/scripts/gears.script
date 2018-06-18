@@ -1,38 +1,39 @@
 SLIDE na 30 1 100;
-SLIDE nb 11 1 100;
+SLIDE nb 10 1 100;
 SLIDE rot 0 0 360;
-SLIDE m 10 0 20;
+SLIDE m 4 0 20;
 SLIDE alpha 20 10 30;
+DEFINE daxe 6;
 
 DEFINE na Math.round(na);
 DEFINE nb Math.round(nb);
 
 
-DEFINE marge 1;
-DEFINE a m*(na+nb)*0.5+marge;//Entraxe
+DEFINE marge 1.01;
+DEFINE a m*(na+nb)*0.5*marge;//Entraxe
 
 SVG_BEGIN 400 400;
 
 SVG_PEN 255 0 0 .5 Solid;
 
 TRANSFORM_ROTATE 100 100 -rot;
-DRAW_GEAR 100 100 m na alpha;
+DRAW_GEAR 100 100 m na alpha daxe 5;
 TRANSFORM_ROTATE 100 100 rot;
 
 SVG_PEN 0 0 255 0.2 Solid;
-DRAW_CIRCLE 100 100 Dp/2;
-DRAW_CIRCLE 100 100 Db/2;
+//DRAW_CIRCLE 100 100 Dp/2;
+//DRAW_CIRCLE 100 100 Db/2;
 SVG_PEN 255 0 0 .5 Solid;
 
 DEFINE r na/nb;
 
 TRANSFORM_ROTATE 100+a 100 rot*r+180/nb;
-DRAW_GEAR 100+a 100 m nb alpha;
+DRAW_GEAR 100+a 100 m nb alpha daxe 5;
 TRANSFORM_ROTATE 100+a 100 -rot*r-180/nb;
 
 SVG_PEN 0 0 255 0.2 Solid;
-DRAW_CIRCLE 100+a 100 Dp/2;
-DRAW_CIRCLE 100+a 100 Db/2;
+//DRAW_CIRCLE 100+a 100 Dp/2;
+//DRAW_CIRCLE 100+a 100 Db/2;
 SVG_PEN 255 0 0 .5 Solid;
 
 
