@@ -3,6 +3,8 @@
 
 #include "displayer.h"
 
+#include <complex>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -835,21 +837,21 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
     path.moveTo(x,y);
     path.addEllipse(x-daxe/2,y-daxe/2,daxe,daxe);
 
-//    double rs=(df-daxe)/4;
-//    double rd=(rs+0.5*daxe);
-//    double A=2*(rs+0.5*daxe)*sin(M_PI/nb_spokes);
-//    double ra=A-(df-daxe)*0.25;
+    //    double rs=(df-daxe)/4;
+    //    double rd=(rs+0.5*daxe);
+    //    double A=2*(rs+0.5*daxe)*sin(M_PI/nb_spokes);
+    //    double ra=A-(df-daxe)*0.25;
 
-//    for(int k=0;k<nb_spokes;k++)
-//    {
-//        double alpha=2*M_PI/nb_spokes*k;
+    //    for(int k=0;k<nb_spokes;k++)
+    //    {
+    //        double alpha=2*M_PI/nb_spokes*k;
 
-//        path.moveTo(x+rd*cos(alpha),y+rd*sin(alpha));
-//        path.addEllipse(
-//                    x+rd*cos(alpha)-ra,
-//                    y+rd*sin(alpha)-ra,
-//                    ra*2,ra*2);
-//    }
+    //        path.moveTo(x+rd*cos(alpha),y+rd*sin(alpha));
+    //        path.addEllipse(
+    //                    x+rd*cos(alpha)-ra,
+    //                    y+rd*sin(alpha)-ra,
+    //                    ra*2,ra*2);
+    //    }
 
     double sm=df*0.1;
     for(int k=0;k<nb_spokes;k++)
@@ -894,6 +896,124 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
         //path.lineTo(A+V*sm/2);
     }
 
+}
+
+void MainWindow::calc_bobine(QPainter & painter,
+                             double Di,
+                             double N,
+                             double W,
+                             double S,
+                             double nbLayers,
+                             double t,QString type)
+{
+    //double Ep=(2.0*W+(W+S)*(2.0*N-1.0))*0.5;
+    double Ep=N*(W+S);
+    //double Di=Do-Ep*2;
+    double Do=Di+Ep*2;
+    double R=Do/2.0;
+
+    if(type==QString("Square"))
+    {
+        double C[4]={1.27,2.07,0.18,0.13};
+
+        std::vector<QLineF> lines;
+        for(int i=0;i<N;i++)
+        {
+            double delta=R-i*(W+S);
+            for(int k=0;k<4;k++)
+            {
+                double alpha=2*M_PI/4.0*k+M_PI/4.0;
+                double beta=2*M_PI/4.0*(k+1)+M_PI/4.0;
+                double radiusa=delta-k*(W+S)/4.0;
+                double radiusb=delta-(k+1)*(W+S)/4.0;
+                lines.push_back(QLineF(radiusa*cos(alpha),radiusa*sin(alpha),
+                                       radiusb*cos(beta),radiusb*sin(beta)));
+            }
+        }
+
+        double lt=0.0;
+        for(int i=0;i<lines.size();i++)
+        {
+            painter.drawLine( transform.map(lines[i]) );
+            lt+=lines[i].length();
+        }
+        double Rt=lt*nbLayers*17*1e-9/(W*t*1e-3);
+        double Davg=(Di+Do)*0.5;
+        double p=(Do-Di)/(Di+Do);
+        double L=(0.5*(4*M_PI*1e-7)*N*N*Davg*C[0])*log(C[1]/p+C[2]*p+C[3]*p*p)*1e3;
+
+        double Lt=L*nbLayers;
+        if(nbLayers>1)
+        {
+            for(int i=0;i<nbLayers;i++)
+            {
+                for(int j=0;j<i;j++)
+                {
+                    double X=(i-j)*0.102;//((i-j)*11+1)*0.102;//(i-j)*0.75;//
+                    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;
+                    double Kc=N*N/((Ca*X*X*X+Cb*X*X+Cc*X+Cd)*(1.67*N*N-5.84*N+65)*0.64);
+
+                    //std::cout<<"Kc("<<i<<" "<<j<<")="<<Kc<<" "<<((i-j)*11+1)<<" "<<X<<std::endl;
+                    Lt+=2*Kc*L;
+                }
+            }
+        }
+
+        pe->globalObject().setProperty("L",Lt);
+        pe->globalObject().setProperty("R",Rt);
+    }
+    else if(type==QString("Octogone"))
+    {
+        double C[4]={1.07,2.29,0.0,0.19};
+        std::vector<QLineF> lines;
+        for(int i=0;i<N;i++)
+        {
+            double delta=R-i*(W+S);
+            for(int k=0;k<8;k++)
+            {
+                double alpha=2*M_PI/8.0*k+M_PI/8.0;
+                double beta=2*M_PI/8.0*(k+1)+M_PI/8.0;
+                double radiusa=delta-k*(W+S)/8.0;
+                double radiusb=delta-(k+1)*(W+S)/8.0;
+                lines.push_back(QLineF(radiusa*cos(alpha),radiusa*sin(alpha),
+                                       radiusb*cos(beta),radiusb*sin(beta)));
+            }
+        }
+
+        double lt=0.0;
+        for(int i=0;i<lines.size();i++)
+        {
+            painter.drawLine( transform.map(lines[i]) );
+            lt+=lines[i].length();
+        }
+        double Rt=lt*nbLayers*17*1e-9/(W*t*1e-3);
+
+        double Davg=(Di+Do)*0.5;
+        double p=(Do-Di)/(Di+Do);
+        double L=(0.5*(4*M_PI*1e-7)*N*N*Davg*C[0])*log(C[1]/p+C[2]*p+C[3]*p*p)*1e3;
+
+        double Lt=L*nbLayers;
+        if(nbLayers>1)
+        {
+            for(int i=0;i<nbLayers;i++)
+            {
+                for(int j=0;j<i;j++)
+                {
+                    double X=(i-j)*0.102;//((i-j)*11+1)*0.102;//(i-j)*0.75;//
+                    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;
+                    double Kc=N*N/((Ca*X*X*X+Cb*X*X+Cc*X+Cd)*(1.67*N*N-5.84*N+65)*0.64);
+
+                    //std::cout<<"Kc("<<i<<" "<<j<<")="<<Kc<<" "<<((i-j)*11+1)<<" "<<X<<std::endl;
+                    Lt+=2*Kc*L;
+                }
+            }
+        }
+
+        pe->globalObject().setProperty("L",Lt);
+        pe->globalObject().setProperty("R",Rt);
+        pe->globalObject().setProperty("Ep",Ep);
+        pe->globalObject().setProperty("Do",Do);
+    }
 }
 
 void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int n,double alpha,double daxe,int nb_spokes)
@@ -980,21 +1100,21 @@ void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int 
     path.moveTo(x,y);
     path.addEllipse(x-daxe/2,y-daxe/2,daxe,daxe);
 
-//    double rs=(df-daxe)/4;
-//    double rd=(rs+0.5*daxe);
-//    double A=2*(rs+0.5*daxe)*sin(M_PI/nb_spokes);
-//    double ra=A-(df-daxe)*0.25;
+    //    double rs=(df-daxe)/4;
+    //    double rd=(rs+0.5*daxe);
+    //    double A=2*(rs+0.5*daxe)*sin(M_PI/nb_spokes);
+    //    double ra=A-(df-daxe)*0.25;
 
-//    for(int k=0;k<nb_spokes;k++)
-//    {
-//        double alpha=2*M_PI/nb_spokes*k;
+    //    for(int k=0;k<nb_spokes;k++)
+    //    {
+    //        double alpha=2*M_PI/nb_spokes*k;
 
-//        path.moveTo(x+rd*cos(alpha),y+rd*sin(alpha));
-//        path.addEllipse(
-//                    x+rd*cos(alpha)-ra,
-//                    y+rd*sin(alpha)-ra,
-//                    ra*2,ra*2);
-//    }
+    //        path.moveTo(x+rd*cos(alpha),y+rd*sin(alpha));
+    //        path.addEllipse(
+    //                    x+rd*cos(alpha)-ra,
+    //                    y+rd*sin(alpha)-ra,
+    //                    ra*2,ra*2);
+    //    }
 
     double sm=df*0.1;
     for(int k=0;k<nb_spokes;k++)
@@ -1713,6 +1833,18 @@ Err MainWindow::process(QStringList content)
                 draw_gear_r( path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
                 painter.drawPath(transform.map(path));
             }
+            else if(args.size()==8 && args[0]==QString("CALC_BOBINE"))
+            {
+                calc_bobine(painter,
+                            exp(args[1]),
+                        exp(args[2]),
+                        exp(args[3]),
+                        exp(args[4]),
+                        exp(args[5]),
+                        exp(args[6]),
+                        args[7]);
+            }
+
             else
             {
                 return Err(i,args[0]+QString(" : Commande inconnue ou mauvais nombre d'arguments (%1)").arg(args.size()));

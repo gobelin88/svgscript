@@ -112,6 +112,9 @@ private:
     void draw_lineCreneaux(QPainterPath & pts, const QLineF & line, double E, double dL, int n, int mode, double offset=0);
     void draw_Line(QPainter & painter,const QPointF & pa,const QPointF & pb);
 
+    void calc_bobine(QPainter & painter, double Di, double N, double W, double S, double nbLayers, double t, QString type);
+
+
     QTransform transform;//Global transform
 
     Displayer * displayer;
