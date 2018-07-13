@@ -906,114 +906,75 @@ void MainWindow::calc_bobine(QPainter & painter,
                              double nbLayers,
                              double t,QString type)
 {
-    //double Ep=(2.0*W+(W+S)*(2.0*N-1.0))*0.5;
-    double Ep=N*(W+S);
-    //double Di=Do-Ep*2;
-    double Do=Di+Ep*2;
-    double R=Do/2.0;
+    unsigned int dN=0;                          //Nombre de pas en fonction du type
+    double Ep=N*(W+S);                          //Epaisseur
+    double Do=Di+Ep*2;                          //Diametre exterieur
+    double R=Do/2.0;                            //Rayon exterieur
+    double C[4]={0,0,0,0};                      //Coefficients L
+    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;//Coefficients pour les couches
+    double Davg=(Di+Do)*0.5;                    //Diamètre moyen
+    double p=(Do-Di)/(Di+Do);                   //
+    double lt=0.0;                              //Longueur de piste
 
-    if(type==QString("Square"))
+    //////////////////////////////////////////////////////////////////////
+
+    if(type==QString("Square"))         {C[0]=1.27;C[1]=2.07;C[2]=0.18;C[3]=0.13;dN=4  ;}
+    else if(type==QString("Hexagone"))  {C[0]=1.09;C[1]=2.23;C[2]=0.00;C[3]=0.17;dN=6  ;}
+    else if(type==QString("Octogone"))  {C[0]=1.07;C[1]=2.29;C[2]=0.00;C[3]=0.19;dN=8  ;}
+    else if(type==QString("Circle"))    {C[0]=1.00;C[1]=2.46;C[2]=0.00;C[3]=0.20;dN=200;}
+
+    ///////////////////////////////////////////////////////////////////////
+
+    QPainterPath path;
+    double Ra,Rb,beta,alpha;
+    for(int i=0;i<N;i++)
     {
-        double C[4]={1.27,2.07,0.18,0.13};
-
-        std::vector<QLineF> lines;
-        for(int i=0;i<N;i++)
+        double delta=R-i*(W+S);
+        double step=(W+S)/dN;
+        for(int k=0;k<dN;k++)
         {
-            double delta=R-i*(W+S);
-            for(int k=0;k<4;k++)
-            {
-                double alpha=2*M_PI/4.0*k+M_PI/4.0;
-                double beta=2*M_PI/4.0*(k+1)+M_PI/4.0;
-                double radiusa=delta-k*(W+S)/4.0;
-                double radiusb=delta-(k+1)*(W+S)/4.0;
-                lines.push_back(QLineF(radiusa*cos(alpha),radiusa*sin(alpha),
-                                       radiusb*cos(beta),radiusb*sin(beta)));
-            }
+            alpha=(2*k+1)*M_PI/dN;
+            beta=(2*k+3)*M_PI/dN;
+            Ra=delta-k*step;
+            Rb=delta-(k+1)*step;
+
+            if(k==0 && i==0){path.moveTo(Ra*cos(alpha),Ra*sin(alpha));}
+            path.lineTo(Rb*cos(beta),Rb*sin(beta));
+
+            double dx=Rb*cos(beta)-Ra*cos(alpha);
+            double dy=Rb*sin(beta)-Ra*sin(alpha);
+            lt+=sqrt( dx*dx+dy*dy );
         }
-
-        double lt=0.0;
-        for(int i=0;i<lines.size();i++)
-        {
-            painter.drawLine( transform.map(lines[i]) );
-            lt+=lines[i].length();
-        }
-        double Rt=lt*nbLayers*17*1e-9/(W*t*1e-3);
-        double Davg=(Di+Do)*0.5;
-        double p=(Do-Di)/(Di+Do);
-        double L=(0.5*(4*M_PI*1e-7)*N*N*Davg*C[0])*log(C[1]/p+C[2]*p+C[3]*p*p)*1e3;
-
-        double Lt=L*nbLayers;
-        if(nbLayers>1)
-        {
-            for(int i=0;i<nbLayers;i++)
-            {
-                for(int j=0;j<i;j++)
-                {
-                    double X=(i-j)*0.102;//((i-j)*11+1)*0.102;//(i-j)*0.75;//
-                    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;
-                    double Kc=N*N/((Ca*X*X*X+Cb*X*X+Cc*X+Cd)*(1.67*N*N-5.84*N+65)*0.64);
-
-                    //std::cout<<"Kc("<<i<<" "<<j<<")="<<Kc<<" "<<((i-j)*11+1)<<" "<<X<<std::endl;
-                    Lt+=2*Kc*L;
-                }
-            }
-        }
-
-        pe->globalObject().setProperty("L",Lt);
-        pe->globalObject().setProperty("R",Rt);
     }
-    else if(type==QString("Octogone"))
+    path.lineTo(Rb*cos(beta),Rb*sin(beta));
+    painter.drawPath( transform.map(path) );
+
+//    for(int i=0;i<lines.size();i++)
+//    {
+//        painter.drawLine( transform.map(lines[i]) );
+//        lt+=lines[i].length();
+//    }
+
+    double L=(0.5*(4*M_PI*1e-7)*N*N*Davg*C[0])*log(C[1]/p+C[2]*p+C[3]*p*p)*1e3;
+    double Rt=lt*nbLayers*17*1e-9/(W*t*1e-3);
+    double Lt=L*nbLayers;
+    if(nbLayers>1)
     {
-        double C[4]={1.07,2.29,0.0,0.19};
-        std::vector<QLineF> lines;
-        for(int i=0;i<N;i++)
+        for(int i=0;i<nbLayers;i++)
         {
-            double delta=R-i*(W+S);
-            for(int k=0;k<8;k++)
+            for(int j=0;j<i;j++)
             {
-                double alpha=2*M_PI/8.0*k+M_PI/8.0;
-                double beta=2*M_PI/8.0*(k+1)+M_PI/8.0;
-                double radiusa=delta-k*(W+S)/8.0;
-                double radiusb=delta-(k+1)*(W+S)/8.0;
-                lines.push_back(QLineF(radiusa*cos(alpha),radiusa*sin(alpha),
-                                       radiusb*cos(beta),radiusb*sin(beta)));
+                double X=(i-j)*0.102;
+                double Kc=N*N/((Ca*X*X*X+Cb*X*X+Cc*X+Cd)*(1.67*N*N-5.84*N+65)*0.64);
+                Lt+=2*Kc*L;
             }
         }
-
-        double lt=0.0;
-        for(int i=0;i<lines.size();i++)
-        {
-            painter.drawLine( transform.map(lines[i]) );
-            lt+=lines[i].length();
-        }
-        double Rt=lt*nbLayers*17*1e-9/(W*t*1e-3);
-
-        double Davg=(Di+Do)*0.5;
-        double p=(Do-Di)/(Di+Do);
-        double L=(0.5*(4*M_PI*1e-7)*N*N*Davg*C[0])*log(C[1]/p+C[2]*p+C[3]*p*p)*1e3;
-
-        double Lt=L*nbLayers;
-        if(nbLayers>1)
-        {
-            for(int i=0;i<nbLayers;i++)
-            {
-                for(int j=0;j<i;j++)
-                {
-                    double X=(i-j)*0.102;//((i-j)*11+1)*0.102;//(i-j)*0.75;//
-                    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;
-                    double Kc=N*N/((Ca*X*X*X+Cb*X*X+Cc*X+Cd)*(1.67*N*N-5.84*N+65)*0.64);
-
-                    //std::cout<<"Kc("<<i<<" "<<j<<")="<<Kc<<" "<<((i-j)*11+1)<<" "<<X<<std::endl;
-                    Lt+=2*Kc*L;
-                }
-            }
-        }
-
-        pe->globalObject().setProperty("L",Lt);
-        pe->globalObject().setProperty("R",Rt);
-        pe->globalObject().setProperty("Ep",Ep);
-        pe->globalObject().setProperty("Do",Do);
     }
+
+    pe->globalObject().setProperty("L",Lt);
+    pe->globalObject().setProperty("R",Rt);
+    pe->globalObject().setProperty("Ep",Ep);
+    pe->globalObject().setProperty("Do",Do);
 }
 
 void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int n,double alpha,double daxe,int nb_spokes)
