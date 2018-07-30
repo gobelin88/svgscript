@@ -753,7 +753,7 @@ void MainWindow::calcGnomonicProjection(QPainter & painter,
     displayer->add(pobj);
 }
 
-void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,double alpha,double daxe,int nb_spokes)
+void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,double daxe,int nb_spokes)
 {
     double dp=m*n;                      //Diametre primitif
     double db=dp*cos(alpha*TO_RAD);     //Diamètre de base
@@ -767,25 +767,19 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
     double dalpha= p*180/(M_PI*dp)*0.5 + delta_p*180/(M_PI); //
 
     QTransform rt,rt2;
-    rt.translate(x,y);
     rt.rotate( -dalpha );
-    rt.translate(-x,-y);
-    path.moveTo( rt.map(QPointF(x+df*0.5,y)) );
+    path.moveTo( rt.map(QPointF(df*0.5,0)) );
 
     for(int k=0;k<n;k++)
     {
         rt.reset();
-        rt.translate(x,y);
         rt.rotate(  k*360.0/n-dalpha);
-        rt.translate(-x,-y);
 
         rt2.reset();
-        rt2.translate(x,y);
         rt2.rotate( k*360.0/n+dalpha);
-        rt2.translate(-x,-y);
 
-        path.lineTo( rt.map(QPointF(x+df*0.5,y)) );
-        path.lineTo( rt.map(QPointF(x+db*0.5,y)) );
+        path.lineTo( rt.map(QPointF(df*0.5,0)) );
+        path.lineTo( rt.map(QPointF(db*0.5,0)) );
 
         rho=0.0;
         t=0.0;
@@ -796,7 +790,7 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
             double X=(cos(t)+t*sin(t))*db*0.5;
             double Y=(sin(t)-t*cos(t))*db*0.5;
             rho=sqrt(X*X+Y*Y);
-            path.lineTo( rt.map(QPointF(x+X,y+Y)) );
+            path.lineTo( rt.map(QPointF(X,Y)) );
             t+=te*0.1;
         }
         while(rho<dh*0.5-te*0.1*0.5);
@@ -807,18 +801,16 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
             double X=(cos(t)+t*sin(t))*db*0.5;
             double Y=-(sin(t)-t*cos(t))*db*0.5;
             rho=sqrt(X*X+Y*Y);
-            path.lineTo( rt2.map(QPointF(x+X,y+Y)) );
+            path.lineTo( rt2.map(QPointF(X,Y)) );
         }
         while(t>te*0.1*0.5);
-        path.lineTo( rt2.map(QPointF(x+df*0.5,y)) );
+        path.lineTo( rt2.map(QPointF(df*0.5,0)) );
     }
 
     rt2.reset();
-    rt2.translate(x,y);
     rt2.rotate( -dalpha );
-    rt2.translate(-x,-y);
 
-    path.lineTo( rt2.map( QPointF(x+df*0.5,y) ) );
+    path.lineTo( rt2.map( QPointF(df*0.5,0) ) );
 
     this->te_console->append("------------------------");
     pe->globalObject().setProperty("Dp", dp);
@@ -834,8 +826,8 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
     this->te_console->append(QString("DEFINE Pb=%1").arg(pb));
     this->te_console->append(QString("DEFINE Pp=%1").arg(p));
 
-    path.moveTo(x,y);
-    path.addEllipse(x-daxe/2,y-daxe/2,daxe,daxe);
+    path.moveTo(0,0);
+    path.addEllipse(-daxe/2,-daxe/2,daxe,daxe);
 
     //    double rs=(df-daxe)/4;
     //    double rd=(rs+0.5*daxe);
@@ -859,11 +851,11 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
         double alpha=2*M_PI/nb_spokes*k;
         double beta=2*M_PI/nb_spokes*(k+1);
 
-        QPointF A(x+(daxe/2+sm)*cos(alpha),y+(daxe/2+sm)*sin(alpha));
-        QPointF B(x+(df  /2-sm)*cos(alpha),y+(df  /2-sm)*sin(alpha));
+        QPointF A((daxe/2+sm)*cos(alpha),(daxe/2+sm)*sin(alpha));
+        QPointF B((df  /2-sm)*cos(alpha),(df  /2-sm)*sin(alpha));
 
-        QPointF C(x+(daxe/2+sm)*cos(beta),y+(daxe/2+sm)*sin(beta));
-        QPointF D(x+(df  /2-sm)*cos(beta),y+(df  /2-sm)*sin(beta));
+        QPointF C((daxe/2+sm)*cos(beta),(daxe/2+sm)*sin(beta));
+        QPointF D((df  /2-sm)*cos(beta),(df  /2-sm)*sin(beta));
 
         QPointF U1=B-A;
         U1=U1/sqrt(QPointF::dotProduct(U1,U1));
@@ -873,11 +865,11 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
         U2=U2/sqrt(QPointF::dotProduct(U2,U2));
         QPointF W(-U2.y(),U2.x());
 
-        QVector2D PB=QVector2D(B+V*sm/2-QPointF(x,y));
-        QVector2D PD=QVector2D(D-W*sm/2-QPointF(x,y));
+        QVector2D PB=QVector2D(B+V*sm/2);
+        QVector2D PD=QVector2D(D-W*sm/2);
 
-        QVector2D PA=QVector2D(A+V*sm/2-QPointF(x,y));
-        QVector2D PC=QVector2D(C-W*sm/2-QPointF(x,y));
+        QVector2D PA=QVector2D(A+V*sm/2);
+        QVector2D PC=QVector2D(C-W*sm/2);
 
         double angleBD=TO_DEG*acos(QVector2D::dotProduct(PB,PD)/(PD.length()*PB.length()));
         double rhoBD=PB.length();
@@ -889,10 +881,10 @@ void MainWindow::draw_gear(QPainterPath & path,double x,double y,double m,int n,
 
         path.moveTo(A+V*sm/2);
         path.lineTo(B+V*sm/2);
-        path.arcTo(x-rhoBD,y-rhoBD,rhoBD*2,rhoBD*2,-360/nb_spokes*k-sma_BD,-angleBD);
+        path.arcTo(-rhoBD,-rhoBD,rhoBD*2,rhoBD*2,-360/nb_spokes*k-sma_BD,-angleBD);
         //path.lineTo(D-W*sm/2);
         path.lineTo(C-W*sm/2);
-        path.arcTo(x-rhoAC,y-rhoAC,rhoAC*2,rhoAC*2,-360/nb_spokes*k-sma_AC-angleAC,angleAC);
+        path.arcTo(-rhoAC,-rhoAC,rhoAC*2,rhoAC*2,-360/nb_spokes*k-sma_AC-angleAC,angleAC);
         //path.lineTo(A+V*sm/2);
     }
 
@@ -971,13 +963,28 @@ void MainWindow::calc_bobine(QPainter & painter,
         }
     }
 
+
+
     pe->globalObject().setProperty("L",Lt);
     pe->globalObject().setProperty("R",Rt);
     pe->globalObject().setProperty("Ep",Ep);
     pe->globalObject().setProperty("Do",Do);
 }
 
-void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int n,double alpha,double daxe,int nb_spokes)
+QPointF sym(double df,double dh,QPointF p)
+{
+    double na=sqrt(p.x()*p.x()+p.y()*p.y());
+    double nb=dh*0.5-(na-df*0.5);
+
+    if(nb>dh*0.5)
+    {
+        nb=dh*0.5;
+    }
+
+    return QPointF(p.x()*nb/na,p.y()*nb/na);
+}
+
+void MainWindow::draw_gear_r(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes)
 {
     double dp=m*n;                      //Diametre primitif
     double db=dp*cos(alpha*TO_RAD);     //Diamètre de base
@@ -991,25 +998,20 @@ void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int 
     double dalpha= p*180/(M_PI*dp)*0.5 + delta_p*180/(M_PI); //
 
     QTransform rt,rt2;
-    rt.translate(x,y);
     rt.rotate( -dalpha );
-    rt.translate(-x,-y);
-    path.moveTo( rt.map(QPointF(x+df*0.5,y)) );
+
+    path.moveTo( rt.map(sym(df,dh, QPointF(df*0.5,0))) );
 
     for(int k=0;k<n;k++)
     {
         rt.reset();
-        rt.translate(x,y);
         rt.rotate(  k*360.0/n-dalpha);
-        rt.translate(-x,-y);
 
         rt2.reset();
-        rt2.translate(x,y);
         rt2.rotate( k*360.0/n+dalpha);
-        rt2.translate(-x,-y);
 
-        path.lineTo( rt.map(QPointF(x+df*0.5,y)) );
-        path.lineTo( rt.map(QPointF(x+db*0.5,y)) );
+        path.lineTo( rt.map(sym(df,dh,QPointF(df*0.5,0))) );
+        path.lineTo( rt.map(sym(df,dh,QPointF(db*0.5,0))) );
 
         rho=0.0;
         t=0.0;
@@ -1020,7 +1022,7 @@ void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int 
             double X=(cos(t)+t*sin(t))*db*0.5;
             double Y=(sin(t)-t*cos(t))*db*0.5;
             rho=sqrt(X*X+Y*Y);
-            path.lineTo( rt.map(QPointF(x+db-X,y+Y)) );
+            path.lineTo( rt.map(sym(df,dh,QPointF(X,Y))) );
             t+=te*0.1;
         }
         while(rho<dh*0.5-te*0.1*0.5);
@@ -1031,18 +1033,19 @@ void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int 
             double X=(cos(t)+t*sin(t))*db*0.5;
             double Y=-(sin(t)-t*cos(t))*db*0.5;
             rho=sqrt(X*X+Y*Y);
-            path.lineTo( rt2.map(QPointF(x+db-X,y+Y)) );
+            path.lineTo( rt2.map(sym(df,dh,QPointF(X,Y))) );
         }
         while(t>te*0.1*0.5);
-        path.lineTo( rt2.map(QPointF(x+df*0.5,y)) );
+        path.lineTo( rt2.map(sym(df,dh,QPointF(df*0.5,0))) );
     }
 
     rt2.reset();
-    rt2.translate(x,y);
     rt2.rotate( -dalpha );
-    rt2.translate(-x,-y);
 
-    path.lineTo( rt2.map( QPointF(x+df*0.5,y) ) );
+    path.lineTo( rt2.map( sym(df,dh,QPointF(df*0.5,0)) ) );
+
+    path.moveTo(0,0);
+    path.addEllipse(-(daxe+dh)/2,-(daxe+dh)/2,(daxe+dh),(daxe+dh));
 
     this->te_console->append("------------------------");
     pe->globalObject().setProperty("Dp", dp);
@@ -1057,68 +1060,6 @@ void MainWindow::draw_gear_r(QPainterPath & path,double x,double y,double m,int 
     this->te_console->append(QString("DEFINE Db=%1").arg(db));
     this->te_console->append(QString("DEFINE Pb=%1").arg(pb));
     this->te_console->append(QString("DEFINE Pp=%1").arg(p));
-
-    path.moveTo(x,y);
-    path.addEllipse(x-daxe/2,y-daxe/2,daxe,daxe);
-
-    //    double rs=(df-daxe)/4;
-    //    double rd=(rs+0.5*daxe);
-    //    double A=2*(rs+0.5*daxe)*sin(M_PI/nb_spokes);
-    //    double ra=A-(df-daxe)*0.25;
-
-    //    for(int k=0;k<nb_spokes;k++)
-    //    {
-    //        double alpha=2*M_PI/nb_spokes*k;
-
-    //        path.moveTo(x+rd*cos(alpha),y+rd*sin(alpha));
-    //        path.addEllipse(
-    //                    x+rd*cos(alpha)-ra,
-    //                    y+rd*sin(alpha)-ra,
-    //                    ra*2,ra*2);
-    //    }
-
-    double sm=df*0.1;
-    for(int k=0;k<nb_spokes;k++)
-    {
-        double alpha=2*M_PI/nb_spokes*k;
-        double beta=2*M_PI/nb_spokes*(k+1);
-
-        QPointF A(x+(daxe/2+sm)*cos(alpha),y+(daxe/2+sm)*sin(alpha));
-        QPointF B(x+(df  /2-sm)*cos(alpha),y+(df  /2-sm)*sin(alpha));
-
-        QPointF C(x+(daxe/2+sm)*cos(beta),y+(daxe/2+sm)*sin(beta));
-        QPointF D(x+(df  /2-sm)*cos(beta),y+(df  /2-sm)*sin(beta));
-
-        QPointF U1=B-A;
-        U1=U1/sqrt(QPointF::dotProduct(U1,U1));
-        QPointF V(-U1.y(),U1.x());
-
-        QPointF U2=D-C;
-        U2=U2/sqrt(QPointF::dotProduct(U2,U2));
-        QPointF W(-U2.y(),U2.x());
-
-        QVector2D PB=QVector2D(B+V*sm/2-QPointF(x,y));
-        QVector2D PD=QVector2D(D-W*sm/2-QPointF(x,y));
-
-        QVector2D PA=QVector2D(A+V*sm/2-QPointF(x,y));
-        QVector2D PC=QVector2D(C-W*sm/2-QPointF(x,y));
-
-        double angleBD=TO_DEG*acos(QVector2D::dotProduct(PB,PD)/(PD.length()*PB.length()));
-        double rhoBD=PB.length();
-        double sma_BD=atan((sm/2.0)/(df/2.0-sm))*TO_DEG;
-
-        double angleAC=TO_DEG*acos(QVector2D::dotProduct(PA,PC)/(PA.length()*PC.length()));
-        double rhoAC=PA.length();
-        double sma_AC=atan((sm/2.0)/(daxe/2.0+sm))*TO_DEG;
-
-        path.moveTo(A+V*sm/2);
-        path.lineTo(B+V*sm/2);
-        path.arcTo(x-rhoBD,y-rhoBD,rhoBD*2,rhoBD*2,-360/nb_spokes*k-sma_BD,-angleBD);
-        //path.lineTo(D-W*sm/2);
-        path.lineTo(C-W*sm/2);
-        path.arcTo(x-rhoAC,y-rhoAC,rhoAC*2,rhoAC*2,-360/nb_spokes*k-sma_AC-angleAC,angleAC);
-        //path.lineTo(A+V*sm/2);
-    }
 
 }
 
@@ -1785,14 +1726,20 @@ Err MainWindow::process(QStringList content)
             else if(args.size()==8 && args[0]==QString("DRAW_GEAR"))
             {
                 QPainterPath path;
-                draw_gear( path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+                draw_gear( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+
+                transform.translate(exp(args[1]),exp(args[2]));
                 painter.drawPath(transform.map(path));
+                transform.translate(-exp(args[1]),-exp(args[2]));
             }
             else if(args.size()==8 && args[0]==QString("DRAW_GEAR_R"))
             {
                 QPainterPath path;
-                draw_gear_r( path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+                draw_gear_r( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+
+                transform.translate(exp(args[1]),exp(args[2]));
                 painter.drawPath(transform.map(path));
+                transform.translate(-exp(args[1]),-exp(args[2]));
             }
             else if(args.size()==8 && args[0]==QString("CALC_BOBINE"))
             {
