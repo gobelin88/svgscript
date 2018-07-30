@@ -1,0 +1,52 @@
+SLIDE na 9 1 100;
+SLIDE nb 15 1 100;
+SLIDE rot 0 0 360;
+SLIDE m 4 0 20;
+SLIDE alpha 20 10 30;
+DEFINE N 3;
+DEFINE daxe 6;
+
+DEFINE na Math.round(na);
+DEFINE nb Math.round(nb);
+DEFINE nc na+2*nb;
+
+DEFINE r na/nb;
+DEFINE R nb/nc*r;
+
+DEFINE a m*(na+nb)*0.5;//Entraxe
+
+SVG_BEGIN 400 400;
+
+SVG_PEN 255 0 0 .5 Solid;
+
+TRANSFORM_ROTATE 100 100 rot*R+(nb%2)*180/nc;
+DRAW_GEAR_R 100 100 m nc alpha daxe*2 5;
+TRANSFORM_ROTATE 100 100 -rot*R-(nb%2)*180/nc;
+
+TRANSFORM_ROTATE 100 100 -rot;
+DRAW_GEAR 100 100 m na alpha daxe 6;
+TRANSFORM_ROTATE 100 100 rot;
+
+
+
+DEFINE K 0;
+LABEL K;
+
+DEFINE beta 2*$pi/N*K;
+
+DEFINE X 100+a*Math.cos(beta);
+DEFINE Y 100+a*Math.sin(beta);
+
+TRANSFORM_ROTATE X Y rot*r+(nb%2+1)*180/nb;
+DRAW_GEAR X Y m nb alpha daxe 6;
+TRANSFORM_ROTATE X Y -rot*r-(nb%2+1)*180/nb;
+
+GOTO K N;
+
+TEXT 100+nc*m*0.5+15 85 Na=%1 na;
+TEXT 100+nc*m*0.5+15 100 Nb=%1 nb;
+TEXT 100+nc*m*0.5+15 115 Nc=%1 nc;
+
+TEXT 100+nc*m*0.5+15 130 R=%1 R;
+
+SVG_END;
