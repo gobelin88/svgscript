@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 31
+#define NB_CMD 33
 static const Command CommandsList[NB_CMD]={
     Command("HELP",              QObject::tr("Lol")),
 
@@ -49,6 +49,9 @@ static const Command CommandsList[NB_CMD]={
     Command("DRAW_RECT_CRENEAUX",QObject::tr("x y w h w dL n1 n2 n3 n4 t1 t2 t3 t4 (d1) (d2) (d3) (d4) :\n\nDessine un rectangle en creneaux dont le coin supérieur gauche est en (x,y) de largeur (w) et de hauteur (h) les creneaux sont définit dans le sens horaires et on les mêmes parametres que DRAW_LINE_CRENEAU." )),
     Command("DRAW_POLYGON",      QObject::tr("x y r n angle:\n\n Dessine un polygone en (x,y) de (n) cotés tourné de (angle).")),
     Command("DRAW_PUZZLE",       QObject::tr("x y nx ny size:\n\n Dessine un puzzle aléatoire en (x,y) de (nx) x (ny) pieces de tailles (size)")),
+
+    Command("DRAW_GEAR",QObject::tr("x y m n alpha daxe nb_spokes :\n\n Dessine un pignon")),
+    Command("DRAW_GEAR_R",QObject::tr("x y m n alpha daxe nb_spokes :\n\n Dessine un pignon")),
 
     Command("TEXT_FONT",QObject::tr("police taille :\n\n (police)=Arial Helvetica Times Roman")),
     Command("TEXT",QObject::tr("x y text (arg1) (arg2) :\n\n Dessine un text avec de possible arguments arg1 et arg2 aux endroits spécifiés pas %1 et %2")),
