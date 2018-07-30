@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     version=QString("v3.3");
 
-    pe=NULL;
+    pe=nullptr;
 
     ui->setupUi(this);
 
@@ -931,7 +931,7 @@ void MainWindow::calc_bobine(QPainter & painter,
     {
         double delta=R-i*(W+S);
         double step=(W+S)/dN;
-        for(int k=0;k<dN;k++)
+        for(unsigned int k=0;k<dN;k++)
         {
             alpha=(2*k+1)*M_PI/dN;
             beta=(2*k+3)*M_PI/dN;
