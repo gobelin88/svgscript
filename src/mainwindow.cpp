@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    version=QString("v3.3");
+    version=QString("v4.0");
 
     pe=nullptr;
 
@@ -898,39 +898,44 @@ void MainWindow::calc_bobine(QPainter & painter,
                              double nbLayers,
                              double t,QString type)
 {
-    unsigned int dN=0;                          //Nombre de pas en fonction du type
-    double Ep=N*(W+S);                          //Epaisseur
-    double Do=Di+Ep*2;                          //Diametre exterieur
-    double R=Do/2.0;                            //Rayon exterieur
     double C[4]={0,0,0,0};                      //Coefficients L
-    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;//Coefficients pour les couches
-    double Davg=(Di+Do)*0.5;                    //Diamètre moyen
-    double p=(Do-Di)/(Di+Do);                   //
-    double lt=0.0;                              //Longueur de piste
+    unsigned int dN=0;                          //Nombre de pas en fonction du type
 
     //////////////////////////////////////////////////////////////////////
-
     if(type==QString("Square"))         {C[0]=1.27;C[1]=2.07;C[2]=0.18;C[3]=0.13;dN=4  ;}
     else if(type==QString("Hexagone"))  {C[0]=1.09;C[1]=2.23;C[2]=0.00;C[3]=0.17;dN=6  ;}
     else if(type==QString("Octogone"))  {C[0]=1.07;C[1]=2.29;C[2]=0.00;C[3]=0.19;dN=8  ;}
     else if(type==QString("Circle"))    {C[0]=1.00;C[1]=2.46;C[2]=0.00;C[3]=0.20;dN=200;}
 
+    double dt=(W+S) * (1.0/cos(M_PI/dN));
+    double Ep=(N-1)*(W+S);                          //Epaisseur
+    double Do=Di+Ep*2;                          //Diametre exterieur
+    double R=Do/2.0 *(1.0/cos(M_PI/dN));        //Rayon exterieur
+
+    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;//Coefficients pour les couches
+    double Davg=(Di+Do)*0.5;                    //Diamètre moyen
+    double p=(Do-Di)/(Di+Do);                   //
+    double lt=0.0;                              //Longueur de piste
+
     ///////////////////////////////////////////////////////////////////////
 
     QPainterPath path;
     double Ra,Rb,beta,alpha;
+
+
+
     for(int i=0;i<N;i++)
     {
-        double delta=R-i*(W+S);
-        double step=(W+S)/dN;
+        double delta=R-(i-1)*dt;
         for(unsigned int k=0;k<dN;k++)
         {
             alpha=(2*k+1)*M_PI/dN;
             beta=(2*k+3)*M_PI/dN;
-            Ra=delta-k*step;
-            Rb=delta-(k+1)*step;
+            Ra=delta;
+            Rb=(k+1  ==dN-1)?delta:delta-dt;//(k+1==dN-1)?delta:delta-dt;
 
             if(k==0 && i==0){path.moveTo(Ra*cos(alpha),Ra*sin(alpha));}
+
             path.lineTo(Rb*cos(beta),Rb*sin(beta));
 
             double dx=Rb*cos(beta)-Ra*cos(alpha);
@@ -986,12 +991,12 @@ QPointF sym(double df,double dh,QPointF p)
 
 void MainWindow::draw_gear_r(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes)
 {
-    double dp=m*n;                      //Diametre primitif
-    double db=dp*cos(alpha*TO_RAD);     //Diamètre de base
-    double p=M_PI*m;                    //Pas primitif
-    double pb=p*cos(alpha*TO_RAD);      //Pas de base
-    double df=dp-2*m;                 //Diamètre de pied
-    double dh=dp+2*m;                   //Diamètre de tête
+    double dp=m*n;                                          //Diametre primitif
+    double db=dp*cos(alpha*TO_RAD);                         //Diamètre de base
+    double p=M_PI*m;                                        //Pas primitif
+    double pb=p*cos(alpha*TO_RAD);                          //Pas de base
+    double df=dp-2*m;                                       //Diamètre de pied
+    double dh=dp+2*m;                                       //Diamètre de tête
     double t=sqrt((dp/db)*(dp/db)-1);                        //
     double rho=0.0;                                          //
     double delta_p=(sin(t)-t*cos(t));                        //
