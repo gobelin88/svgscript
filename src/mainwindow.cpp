@@ -1049,8 +1049,11 @@ void MainWindow::draw_gear_r(QPainterPath & path, double m, int n, double alpha,
 
     path.lineTo( rt2.map( sym(df,dh,QPointF(df*0.5,0)) ) );
 
-    path.moveTo(0,0);
-    path.addEllipse(-(daxe+dh)/2,-(daxe+dh)/2,(daxe+dh),(daxe+dh));
+    if(daxe>0)
+    {
+        path.moveTo(0,0);
+        path.addEllipse(-(daxe)/2,-(daxe)/2,(daxe),(daxe));
+    }
 
     this->te_console->append("------------------------");
     pe->globalObject().setProperty("Dp", dp);
