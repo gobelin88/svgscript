@@ -146,7 +146,7 @@ public:
 
         //this->setMaximumWidth(400);
         this->gui=gui;
-        slider->setRange(0,10000);
+        slider->setRange(0,1000);
         this->min=min;
         this->max=max;
         this->value_init=value_init;
@@ -161,9 +161,9 @@ public:
         hlayout->addWidget(pb_close);        
 
         connect(pb_close,SIGNAL(clicked(bool)),this,SLOT(close()));
-        connect(slider,SIGNAL(valueChanged(int)),this,SLOT(updateValue(int)));
-        connect(pb_init,SIGNAL(clicked(bool)),this,SLOT(reset()));
-        connect(spin,SIGNAL(valueChanged(double)),this,SLOT(set_value(double)));
+        connect(slider,SIGNAL(valueChanged(int)),this,SLOT(updateValue_slider(int)));
+        connect(pb_init,SIGNAL(clicked(bool)),this,SLOT(init()));
+        connect(spin,SIGNAL(valueChanged(double)),this,SLOT(updateValue_spin(double)));
     }
     ~MyQSlider()
     {
@@ -180,25 +180,47 @@ public slots:
         set_value(value_init);
     }
 
-    void updateValue(int valuei)
+    void init()
     {
-        valuef=valuei*(max-min)/10000.0+min;
+        set_value(value_init);
+        gui->slot_run();
+    }
+
+    void updateValue_slider(int valuei)
+    {
+        valuef=valuei*(max-min)/1000.0+min;
+
+        spin->blockSignals(true);
         spin->setValue(valuef);
+        spin->blockSignals(false);
+
+        gui->slot_run();
+    }
+
+    void updateValue_spin(double valuef)
+    {
+        int valuei=(valuef-min)*1000.0/(max-min);
+        this->valuef=valuef;
+
+        slider->blockSignals(true);
+        slider->setValue(valuei);
+        slider->blockSignals(false);
+
         gui->slot_run();
     }
 
     void set_value(double valuef)
     {
-        int valuei=std::round( (valuef-min)*10000.0/(max-min) );
+        int valuei=(valuef-min)*1000.0/(max-min);
         this->valuef=valuef;
 
         spin->blockSignals(true);
         spin->setValue(valuef);
         spin->blockSignals(false);
 
-        //slider->blockSignals(true);
+        slider->blockSignals(true);
         slider->setValue(valuei);
-        //slider->blockSignals(false);
+        slider->blockSignals(false);
     }
 
     QSlider * obj(){return slider;}

@@ -60,8 +60,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(pb_load,SIGNAL(clicked()),this,SLOT(slot_load()));
     connect(pb_save,SIGNAL(clicked()),this,SLOT(slot_save()));
-    connect(pb_run,SIGNAL(clicked()),this,SLOT(slot_run()));
+
     connect(pb_run,SIGNAL(clicked()),this,SLOT(initSliders()));
+    connect(pb_run,SIGNAL(clicked()),this,SLOT(slot_run()));
+
     connect(a_direct_save,SIGNAL(triggered()),this,SLOT(slot_direct_save()));
     connect(te_script,SIGNAL(textChanged()),this,SLOT(slot_modified()));
 
