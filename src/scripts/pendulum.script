@@ -7,7 +7,7 @@ DEFINE dw 10;
 DEFINE rot -angle*Math.cos(t*dw*2*$pi);
 DEFINE rota t*dw*360/N;
 
-DEFINE Ld 60;
+DEFINE Ld 50;
 DEFINE Rd 30;
 
 DEFINE X 200;
@@ -36,9 +36,9 @@ L 0 W;
 
 TRANSFORM_ROTATE X Y -angle;
 
-TRANSFORM_ROTATE X Y 2*angle+10;
-DRAW_RECT X Y-W/2 Ld-Rd*0.65 W;
-TRANSFORM_ROTATE X Y -2*angle-10;
+TRANSFORM_ROTATE X Y 2*angle+19;
+DRAW_RECT X Y-W/2 Ld-17 W;
+TRANSFORM_ROTATE X Y -2*angle-19;
 
 DRAW_CIRCLE X Y W*2;
 

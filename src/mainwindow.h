@@ -75,6 +75,8 @@ public slots:
     void slot_direct_load(QString filename);
     void slot_modified();
     void removeSlider(QString varname);
+    void removeSliders();
+    void initSliders();
 
 private:
     Ui::MainWindow *ui;
@@ -124,14 +126,14 @@ private:
 
     QList<MyQSlider*> sliderlist;
 
-
+    QTabWidget * tab_view;
 };
 
 class MyQSlider:public QWidget
 {
     Q_OBJECT
 public:
-    MyQSlider(QString varname,double min,double max,MainWindow * gui)
+    MyQSlider(QString varname,double min,double max,double value_init,MainWindow * gui)
     {
         slider=new QSlider(Qt::Horizontal,gui);
         spin=new QDoubleSpinBox(gui);
@@ -139,22 +141,29 @@ public:
         spin->setPrefix(varname+QString("="));
         spin->setRange(min,max);
         pb_close=new QPushButton("X",this);
+        pb_init=new QPushButton("Init",this);
 
 
-        this->setMaximumWidth(400);
+        //this->setMaximumWidth(400);
         this->gui=gui;
-        slider->setRange(0,1000);
+        slider->setRange(0,10000);
         this->min=min;
         this->max=max;
+        this->value_init=value_init;
         this->varname=varname;
         this->setAttribute( Qt::WA_DeleteOnClose );
+        this->set_value(value_init);
 
         QHBoxLayout * hlayout=new QHBoxLayout(this);
+        hlayout->addWidget(pb_init);
         hlayout->addWidget(slider);
         hlayout->addWidget(spin);
-        hlayout->addWidget(pb_close);
+        hlayout->addWidget(pb_close);        
 
         connect(pb_close,SIGNAL(clicked(bool)),this,SLOT(close()));
+        connect(slider,SIGNAL(valueChanged(int)),this,SLOT(updateValue(int)));
+        connect(pb_init,SIGNAL(clicked(bool)),this,SLOT(reset()));
+        connect(spin,SIGNAL(valueChanged(double)),this,SLOT(set_value(double)));
     }
     ~MyQSlider()
     {
@@ -165,22 +174,31 @@ public:
 
     double get_value(){return valuef;}
 
-    void set_value(double valuef)
+public slots:
+    void reset()
     {
-        int valuei=(valuef-min)*1000/(max-min);
-        this->valuef=valuef;
-        spin->setValue(valuef);
-        slider->setValue(valuei);
+        set_value(value_init);
     }
 
-
-
-public slots:
     void updateValue(int valuei)
     {
-        valuef=valuei*(max-min)/1000+min;
+        valuef=valuei*(max-min)/10000.0+min;
         spin->setValue(valuef);
         gui->slot_run();
+    }
+
+    void set_value(double valuef)
+    {
+        int valuei=std::round( (valuef-min)*10000.0/(max-min) );
+        this->valuef=valuef;
+
+        spin->blockSignals(true);
+        spin->setValue(valuef);
+        spin->blockSignals(false);
+
+        //slider->blockSignals(true);
+        slider->setValue(valuei);
+        //slider->blockSignals(false);
     }
 
     QSlider * obj(){return slider;}
@@ -190,12 +208,12 @@ signals:
 
 private:
     QString varname;
-    double min,max,valuef;
+    double min,max,valuef,value_init;
     MainWindow * gui;
 
     QSlider * slider;
     QDoubleSpinBox * spin;
-    QPushButton * pb_close;
+    QPushButton * pb_close,*pb_init;
 };
 
 #endif // MAINWINDOW_H

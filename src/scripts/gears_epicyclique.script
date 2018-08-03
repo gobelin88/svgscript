@@ -1,7 +1,7 @@
 SLIDE na 9 1 100;
 SLIDE nb 15 1 100;
 SLIDE rot 0 0 360;
-SLIDE m 2 0 20;
+SLIDE m 3 0 20;
 SLIDE alpha 20 10 30;
 DEFINE N 3;
 DEFINE daxe 6;

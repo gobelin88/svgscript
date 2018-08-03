@@ -33,7 +33,6 @@ MainWindow::MainWindow(QWidget *parent) :
     this->addAction(a_direct_save);
     scroll->setWidget(w_svg);
 
-    te_script->setMinimumWidth(400);
     te_script->setMaximumWidth(512);
     te_console->setMaximumSize(512,200);
 
@@ -44,21 +43,29 @@ MainWindow::MainWindow(QWidget *parent) :
 
     slider_layout=new QVBoxLayout();
 
-    ui->gridLayout->addWidget(te_script,0,0);
+    tab_view=new QTabWidget();
+
+    tab_view->addTab(te_script,"Script");
+    QWidget * widget_slider=new QWidget();
+    slider_layout->addStretch();
+    widget_slider->setLayout(slider_layout);
+    tab_view->setMaximumWidth(512);
+
+    tab_view->addTab(widget_slider,"Sliders");
+
+    ui->gridLayout->addWidget(tab_view,0,0);
     ui->gridLayout->addWidget(te_console,1,0);
-    ui->gridLayout->addLayout(slider_layout,2,0);
-    ui->gridLayout->addLayout(l_pb,3,0);
+    ui->gridLayout->addLayout(l_pb,2,0);
     ui->gridLayout->addWidget(scroll,0,1,4,1);
 
     connect(pb_load,SIGNAL(clicked()),this,SLOT(slot_load()));
     connect(pb_save,SIGNAL(clicked()),this,SLOT(slot_save()));
     connect(pb_run,SIGNAL(clicked()),this,SLOT(slot_run()));
+    connect(pb_run,SIGNAL(clicked()),this,SLOT(initSliders()));
     connect(a_direct_save,SIGNAL(triggered()),this,SLOT(slot_direct_save()));
     connect(te_script,SIGNAL(textChanged()),this,SLOT(slot_modified()));
 
     loadStyle(":/qss_script/rc/style.txt");
-
-
 }
 
 MainWindow::~MainWindow()
@@ -86,6 +93,8 @@ void MainWindow::slot_direct_load(QString filename)
         QFile file(filename);
         if(file.open(QIODevice::Text | QIODevice::ReadOnly))
         {
+            removeSliders();
+
             te_script->setText(QString(file.readAll()));
             file.close();
 
@@ -127,6 +136,22 @@ void MainWindow::slot_direct_save()
     else
     {
         QMessageBox::critical(this,"Error","Unable to save script file");
+    }
+}
+
+void MainWindow::removeSliders()
+{
+    for(int i=0;i<sliderlist.size();i++)
+    {
+        sliderlist[i]->close();
+    }
+}
+
+void MainWindow::initSliders()
+{
+    for(int i=0;i<sliderlist.size();i++)
+    {
+        sliderlist[i]->reset();
     }
 }
 
@@ -766,6 +791,8 @@ void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,doubl
     double delta_p=(sin(t)-t*cos(t));                        //
     double dalpha= p*180/(M_PI*dp)*0.5 + delta_p*180/(M_PI); //
 
+    //if(db<df)db=df;
+
     QTransform rt,rt2;
     rt.rotate( -dalpha );
     path.moveTo( rt.map(QPointF(df*0.5,0)) );
@@ -778,8 +805,9 @@ void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,doubl
         rt2.reset();
         rt2.rotate( k*360.0/n+dalpha);
 
-        path.lineTo( rt.map(QPointF(df*0.5,0)) );
-        path.lineTo( rt.map(QPointF(db*0.5,0)) );
+            path.lineTo( rt.map(QPointF(df*0.5,0)) );
+            path.lineTo( rt.map(QPointF(db*0.5,0)) );
+
 
         rho=0.0;
         t=0.0;
@@ -810,7 +838,7 @@ void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,doubl
     rt2.reset();
     rt2.rotate( -dalpha );
 
-    path.lineTo( rt2.map( QPointF(df*0.5,0) ) );
+        path.lineTo( rt2.map( QPointF(df*0.5,0) ) );
 
     this->te_console->append("------------------------");
     pe->globalObject().setProperty("Dp", dp);
@@ -967,11 +995,11 @@ void MainWindow::calc_bobine(QPainter & painter,
     path.lineTo(Rb*cos(beta),Rb*sin(beta));
     painter.drawPath( transform.map(path) );
 
-//    for(int i=0;i<lines.size();i++)
-//    {
-//        painter.drawLine( transform.map(lines[i]) );
-//        lt+=lines[i].length();
-//    }
+    //    for(int i=0;i<lines.size();i++)
+    //    {
+    //        painter.drawLine( transform.map(lines[i]) );
+    //        lt+=lines[i].length();
+    //    }
 
     double L=(0.5*(4*M_PI*1e-7)*N*N*Davg*C[0])*log(C[1]/p+C[2]*p+C[3]*p*p)*1e3;
     double Rt=lt*nbLayers*17*1e-9/(W*t*1e-3);
@@ -1353,12 +1381,10 @@ Err MainWindow::process(QStringList content)
 
                 if(!slider)
                 {
-                    slider=new MyQSlider(args[1],exp(args[3]),exp(args[4]),this);
+                    slider=new MyQSlider(args[1],exp(args[3]),exp(args[4]),exp(args[2]),this);
                     sliderlist.append(slider);
                     connect(slider,SIGNAL(deleted(QString)),this,SLOT(removeSlider(QString)));
                     slider_layout->addWidget(slider);
-                    slider->set_value(exp(args[2]));
-                    connect(slider->obj(),SIGNAL(valueChanged(int)),slider,SLOT(updateValue(int)));
 
                     pe->globalObject().setProperty(slider->name(),slider->get_value());
                 }
