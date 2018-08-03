@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 33
+#define NB_CMD 34
 static const Command CommandsList[NB_CMD]={
     Command("HELP",              QObject::tr("Lol")),
 
@@ -56,7 +56,7 @@ static const Command CommandsList[NB_CMD]={
     Command("TEXT_FONT",QObject::tr("police taille :\n\n (police)=Arial Helvetica Times Roman")),
     Command("TEXT",QObject::tr("x y text (arg1) (arg2) :\n\n Dessine un text avec de possible arguments arg1 et arg2 aux endroits spécifiés pas %1 et %2")),
 
-
+    Command("DRAW_PENDULE",QObject::tr("x y P Theta0 daxe1 daxe2: (P)Periode (daxe1-2)Diamètres des trous (Theta0)Angle du lancer pour la correction de la période... \n\n")),
 
     Command("PROJECT_OBJECT",    QObject::tr("file.obj ..."))
 };

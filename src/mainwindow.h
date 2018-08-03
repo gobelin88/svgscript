@@ -111,6 +111,7 @@ private:
     void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center,double ra,double rb, double E, double dL, int n, int mode, double offset=0);
     void draw_lineCreneaux(QPainterPath & pts, const QLineF & line, double E, double dL, int n, int mode, double offset=0);
     void draw_Line(QPainter & painter,const QPointF & pa,const QPointF & pb);
+    void draw_pendule(QPainter & painter,double x,double y,double P,double theta,double daxe1,double daxe2);
 
     void calc_bobine(QPainter & painter, double Di, double N, double W, double S, double nbLayers, double t, QString type);
 

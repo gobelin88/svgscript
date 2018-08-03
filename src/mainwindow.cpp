@@ -890,6 +890,27 @@ void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,doubl
 
 }
 
+void MainWindow::draw_pendule(QPainter & painter,double x,double y,double P,double theta,double daxe1,double daxe2)
+{
+    //Calcule de la longueur du pendule
+    double P0=P/(1+theta*theta/16.0);
+    double L=P0*P0*9.81/(4*M_PI*M_PI)*1e3;
+
+    QPointF c(x,y);
+    QPainterPath path;
+
+    path.moveTo(c+QPointF(daxe1/2,0));
+    path.arcTo(QRectF(c.x()-daxe1/2,c.y()-daxe1/2,daxe1,daxe1),0 ,360);
+
+    path.moveTo(c+QPointF(daxe2/2,L));
+    path.arcTo(QRectF(c.x()-daxe2/2,c.y()-daxe2/2+L,daxe2,daxe2),0 ,360);
+
+    painter.drawPath(transform.map(path));
+
+    pe->globalObject().setProperty("Lp", L);
+    this->te_console->append(QString("DEFINE Lp=%1").arg(L));
+}
+
 void MainWindow::calc_bobine(QPainter & painter,
                              double Di,
                              double N,
@@ -1760,7 +1781,10 @@ Err MainWindow::process(QStringList content)
                         exp(args[6]),
                         args[7]);
             }
-
+            else if(args.size()==7 && args[0]==QString("DRAW_PENDULE"))
+            {
+                draw_pendule(painter,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
+            }
             else
             {
                 return Err(i,args[0]+QString(" : Commande inconnue ou mauvais nombre d'arguments (%1)").arg(args.size()));
