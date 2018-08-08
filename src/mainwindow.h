@@ -108,6 +108,7 @@ private:
 
     QString comment(QString content);
 
+    void draw_gear_s(QPainterPath & path, double m, int n, double daxe, int nb_spokes=-1);
     void draw_gear_r(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes=-1);
     void draw_gear(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes=-1);
     void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center,double ra,double rb, double E, double dL, int n, int mode, double offset=0);

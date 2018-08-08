@@ -920,20 +920,120 @@ void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,doubl
 
 }
 
+void MainWindow::draw_gear_s(QPainterPath & path,double m,int n,double daxe,int nb_spokes)
+{
+    double dp=m*n;                      //Diametre primitif
+    double df=dp-2*m;                   //Diamètre de pied
+    double dh=dp+2*m;                   //Diamètre de tête
+
+    QTransform rt;
+    path.moveTo( rt.map(QPointF(df*0.5,0)) );
+
+    for(int k=0;k<n;k++)
+    {
+        rt.reset();
+        rt.rotate( k*360.0/n );
+
+        path.lineTo( rt.map(QPointF(dh*0.5,0)) );
+        path.lineTo( rt.map(QPointF(df*0.5,0)) );
+    }
+    rt.reset();
+    rt.rotate( 360.0 );
+    path.lineTo( rt.map( QPointF(dh*0.5,0) ) );
+
+    this->te_console->append("------------------------");
+    pe->globalObject().setProperty("Dp", dp);
+    pe->globalObject().setProperty("Dh", dh);
+    pe->globalObject().setProperty("Df", df);
+    this->te_console->append(QString("DEFINE Dp=%1").arg(dp));
+    this->te_console->append(QString("DEFINE Dh=%1").arg(dh));
+    this->te_console->append(QString("DEFINE Df=%1").arg(df));
+
+    path.moveTo(0,0);
+    path.addEllipse(-daxe/2,-daxe/2,daxe,daxe);
+
+    //    double rs=(df-daxe)/4;
+    //    double rd=(rs+0.5*daxe);
+    //    double A=2*(rs+0.5*daxe)*sin(M_PI/nb_spokes);
+    //    double ra=A-(df-daxe)*0.25;
+
+    //    for(int k=0;k<nb_spokes;k++)
+    //    {
+    //        double alpha=2*M_PI/nb_spokes*k;
+
+    //        path.moveTo(x+rd*cos(alpha),y+rd*sin(alpha));
+    //        path.addEllipse(
+    //                    x+rd*cos(alpha)-ra,
+    //                    y+rd*sin(alpha)-ra,
+    //                    ra*2,ra*2);
+    //    }
+
+    double sm=df*0.1;
+    for(int k=0;k<nb_spokes;k++)
+    {
+        double alpha=2*M_PI/nb_spokes*k;
+        double beta=2*M_PI/nb_spokes*(k+1);
+
+        QPointF A((daxe/2+sm)*cos(alpha),(daxe/2+sm)*sin(alpha));
+        QPointF B((df  /2-sm)*cos(alpha),(df  /2-sm)*sin(alpha));
+
+        QPointF C((daxe/2+sm)*cos(beta),(daxe/2+sm)*sin(beta));
+        QPointF D((df  /2-sm)*cos(beta),(df  /2-sm)*sin(beta));
+
+        QPointF U1=B-A;
+        U1=U1/sqrt(QPointF::dotProduct(U1,U1));
+        QPointF V(-U1.y(),U1.x());
+
+        QPointF U2=D-C;
+        U2=U2/sqrt(QPointF::dotProduct(U2,U2));
+        QPointF W(-U2.y(),U2.x());
+
+        QVector2D PB=QVector2D(B+V*sm/2);
+        QVector2D PD=QVector2D(D-W*sm/2);
+
+        QVector2D PA=QVector2D(A+V*sm/2);
+        QVector2D PC=QVector2D(C-W*sm/2);
+
+        double angleBD=TO_DEG*acos(QVector2D::dotProduct(PB,PD)/(PD.length()*PB.length()));
+        double rhoBD=PB.length();
+        double sma_BD=atan((sm/2.0)/(df/2.0-sm))*TO_DEG;
+
+        double angleAC=TO_DEG*acos(QVector2D::dotProduct(PA,PC)/(PA.length()*PC.length()));
+        double rhoAC=PA.length();
+        double sma_AC=atan((sm/2.0)/(daxe/2.0+sm))*TO_DEG;
+
+        path.moveTo(A+V*sm/2);
+        path.lineTo(B+V*sm/2);
+        path.arcTo(-rhoBD,-rhoBD,rhoBD*2,rhoBD*2,-360/nb_spokes*k-sma_BD,-angleBD);
+        //path.lineTo(D-W*sm/2);
+        path.lineTo(C-W*sm/2);
+        path.arcTo(-rhoAC,-rhoAC,rhoAC*2,rhoAC*2,-360/nb_spokes*k-sma_AC-angleAC,angleAC);
+        //path.lineTo(A+V*sm/2);
+    }
+
+}
+
 void MainWindow::draw_pendule(QPainter & painter,double x,double y,double P,double theta,double daxe1,double daxe2)
 {
     //Calcule de la longueur du pendule
-    double P0=P/(1+theta*theta/16.0);
+    double P0=P/(1+theta*theta/16.0*M_PI*M_PI/180/180);
     double L=P0*P0*9.81/(4*M_PI*M_PI)*1e3;
 
     QPointF c(x,y);
     QPainterPath path;
 
-    path.moveTo(c+QPointF(daxe1/2,0));
-    path.arcTo(QRectF(c.x()-daxe1/2,c.y()-daxe1/2,daxe1,daxe1),0 ,360);
+    double W=5;
+    double alpha_1=asin(W/daxe1)*180/M_PI;
+    double alpha_2=asin(W/daxe2)*180/M_PI;
 
-    path.moveTo(c+QPointF(daxe2/2,L));
-    path.arcTo(QRectF(c.x()-daxe2/2,c.y()-daxe2/2+L,daxe2,daxe2),0 ,360);
+    std::cout<<alpha_1<<" "<<alpha_2<<std::endl;
+
+    path.moveTo(c+QPointF(daxe1/2*sin(alpha_1/180*M_PI),daxe1/2*cos(alpha_1/180*M_PI)));
+    path.arcTo(QRectF(c.x()-daxe1/2,c.y()-daxe1/2,daxe1,daxe1),alpha_1 -90,360-alpha_1*2);
+
+    path.arcTo(QRectF(c.x()-daxe2/2,c.y()-daxe2/2+L,daxe2,daxe2),alpha_2 +90,360-alpha_2*2);
+    path.lineTo(c+QPointF(daxe1/2*sin(alpha_1/180*M_PI),daxe1/2*cos(alpha_1/180*M_PI)));
+
 
     painter.drawPath(transform.map(path));
 
@@ -1793,6 +1893,15 @@ Err MainWindow::process(QStringList content)
             {
                 QPainterPath path;
                 draw_gear_r( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+
+                transform.translate(exp(args[1]),exp(args[2]));
+                painter.drawPath(transform.map(path));
+                transform.translate(-exp(args[1]),-exp(args[2]));
+            }
+            else if(args.size()==7 && args[0]==QString("DRAW_GEAR_S"))
+            {
+                QPainterPath path;
+                draw_gear_s( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
 
                 transform.translate(exp(args[1]),exp(args[2]));
                 painter.drawPath(transform.map(path));

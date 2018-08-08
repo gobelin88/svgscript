@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 34
+#define NB_CMD 35
 static const Command CommandsList[NB_CMD]={
     Command("HELP",              QObject::tr("Lol")),
 
@@ -51,7 +51,8 @@ static const Command CommandsList[NB_CMD]={
     Command("DRAW_PUZZLE",       QObject::tr("x y nx ny size:\n\n Dessine un puzzle aléatoire en (x,y) de (nx) x (ny) pieces de tailles (size)")),
 
     Command("DRAW_GEAR",QObject::tr("x y m n alpha daxe nb_spokes :\n\n Dessine un pignon")),
-    Command("DRAW_GEAR_R",QObject::tr("x y m n alpha daxe nb_spokes :\n\n Dessine un pignon")),
+    Command("DRAW_GEAR_R",QObject::tr("x y m n alpha daxe nb_spokes :\n\n Dessine un pignon type reverse")),
+    Command("DRAW_GEAR_S",QObject::tr("x y m n daxe nb_spokes :\n\n Dessine un pignon type spikes")),
 
     Command("TEXT_FONT",QObject::tr("police taille :\n\n (police)=Arial Helvetica Times Roman")),
     Command("TEXT",QObject::tr("x y text (arg1) (arg2) :\n\n Dessine un text avec de possible arguments arg1 et arg2 aux endroits spécifiés pas %1 et %2")),
