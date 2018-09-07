@@ -386,8 +386,7 @@ void MainWindow::draw_ellipseCreneaux(
             cp+=v*E;pts.lineTo(cp);
             cp+=u*dL;pts.lineTo(cp);
             cp-=v*E;pts.lineTo(cp);
-
-            cp+=u*Eps-offset*u;
+            cp+=u*Eps-offset*u;pts.lineTo(cp);
         }
         else if(mode==4)
         {
@@ -440,7 +439,7 @@ void MainWindow::draw_ellipseCreneaux(
     if(mode==3)
     {
         pts.moveTo(center+QPointF( (ra+E*1.5)*cos(theta0*TO_RAD),
-                                  -(ra+E*1.5)*sin(theta0*TO_RAD) ));
+                                   -(ra+E*1.5)*sin(theta0*TO_RAD) ));
         pts.arcTo(QRectF(center.x()-(ra+E*1.5),center.y()-(rb+E*1.5),2*(ra+E*1.5),2*(rb+E*1.5)),theta0 ,dtheta);
     }
 
@@ -929,8 +928,8 @@ void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,doubl
         rt2.reset();
         rt2.rotate( k*360.0/n+dalpha);
 
-            path.lineTo( rt.map(QPointF(df*0.5,0)) );
-            path.lineTo( rt.map(QPointF(db*0.5,0)) );
+        path.lineTo( rt.map(QPointF(df*0.5,0)) );
+        path.lineTo( rt.map(QPointF(db*0.5,0)) );
 
 
         rho=0.0;
@@ -962,7 +961,7 @@ void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,doubl
     rt2.reset();
     rt2.rotate( -dalpha );
 
-        path.lineTo( rt2.map( QPointF(df*0.5,0) ) );
+    path.lineTo( rt2.map( QPointF(df*0.5,0) ) );
 
     this->te_console->append("------------------------");
     pe->globalObject().setProperty("Dp", dp);
@@ -1574,6 +1573,13 @@ Err MainWindow::process(QStringList content)
                         path.lineTo(P);
                         k+=3;
                     }
+                    else if(args[k]=="Lc")
+                    {
+                        draw_lineCreneaux(path,QLineF(P,P+QPointF(exp(args[k+1]),exp(args[k+2])) ),
+                                exp(args[k+3]),exp(args[k+4]),exp(args[k+5]),exp(args[k+6]) );
+                        P=P+QPointF(exp(args[k+1]),exp(args[k+2]));
+                        k+=7;
+                    }
                     else if(args[k]=="C" && (k+5)<args.size())
                     {
                         P=P+QPointF(exp(args[k+1]),exp(args[k+2]));
@@ -1775,7 +1781,7 @@ Err MainWindow::process(QStringList content)
                 //                    painter.drawText(lines[i].p1(),QString::number(i));
                 //                }
             }
-            else if(args.size()==9 && args[0]==QString("DRAW_LINE_CRENEAUX"))//Ok
+            else if((args.size()==9 || args.size()==10) && args[0]==QString("DRAW_LINE_CRENEAUX"))//Ok
             {
                 QPainterPath path;
                 double x1=exp(args[1]);
@@ -1785,9 +1791,19 @@ Err MainWindow::process(QStringList content)
 
 
                 path.moveTo(QPointF(x1,y1));
-                draw_lineCreneaux(path,
-                                  QLineF(QPointF(x1,y1),QPointF(x2,y2)),
-                                  exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]));
+
+                if(args.size()==9)
+                {
+                    draw_lineCreneaux(path,
+                                      QLineF(QPointF(x1,y1),QPointF(x2,y2)),
+                                      exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]));
+                }
+                else if(args.size()==10)
+                {
+                    draw_lineCreneaux(path,
+                                      QLineF(QPointF(x1,y1),QPointF(x2,y2)),
+                                      exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),exp(args[9]));
+                }
 
                 painter.drawPath(transform.map(path));
             }
