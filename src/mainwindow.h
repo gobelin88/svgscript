@@ -26,19 +26,20 @@
 #include <Eigen/Dense>
 
 #include "Highlighter.h"
+#include "codeeditor.h"
 
 class MyQSlider;
 
 struct Err
 {
-    Err(int line,QString what)
+    Err(int id,QString cmd)
     {
-        this->line=line;
-        this->what=what;
+        this->id=id;
+        this->cmd=cmd;
     }
 
-    int line;
-    QString what;
+    int id;
+    QString cmd;
 };
 
 namespace Ui {
@@ -91,7 +92,7 @@ private:
     QPushButton * pb_run;
     QAction * a_direct_save;
 
-    QTextEdit * te_script;
+    CodeEditor * te_script;
     QTextEdit * te_console;
     QSvgWidget * w_svg;
 
@@ -111,13 +112,15 @@ private:
     void draw_gear_s(QPainterPath & path, double m, int n, double daxe, int nb_spokes=-1);
     void draw_gear_r(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes=-1);
     void draw_gear(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes=-1);
-    void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center,double ra,double rb, double E, double dL, int n, int mode, double offset=0);
+    void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center, double ra, double rb, double E, double dL, int n, int mode, double offset=0, double theta0=0, double dtheta=360);
     void draw_lineCreneaux(QPainterPath & pts, const QLineF & line, double E, double dL, int n, int mode, double offset=0);
     void draw_Line(QPainter & painter,const QPointF & pa,const QPointF & pb);
     void draw_pendule(QPainter & painter,double x,double y,double P,double theta,double daxe1,double daxe2);
+    QPainterPath draw_circle_tangent(QLineF line,double alpha);
 
     void calc_bobine(QPainter & painter, double Di, double N, double W, double S, double nbLayers, double t, QString type);
 
+    void help(QString cmd);
 
     QTransform transform;//Global transform
 
@@ -128,6 +131,8 @@ private:
     QList<MyQSlider*> sliderlist;
 
     QTabWidget * tab_view;
+
+
 };
 
 class MyQSlider:public QWidget

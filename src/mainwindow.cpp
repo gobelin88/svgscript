@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    te_script=new QTextEdit();
+    te_script=new CodeEditor();
     te_console=new QTextEdit();
 
     highlighter=new Highlighter(te_script->document());
@@ -45,13 +45,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     tab_view=new QTabWidget();
 
-    tab_view->addTab(te_script,"Script");
-    QWidget * widget_slider=new QWidget();
+
+
     slider_layout->addStretch();
-    widget_slider->setLayout(slider_layout);
+
     tab_view->setMaximumWidth(512);
 
+    QWidget * widget_slider=new QWidget();
+    widget_slider->setLayout(slider_layout);
     tab_view->addTab(widget_slider,"Sliders");
+    tab_view->addTab(te_script,"Script");
 
     ui->gridLayout->addWidget(tab_view,0,0);
     ui->gridLayout->addWidget(te_console,1,0);
@@ -97,7 +100,7 @@ void MainWindow::slot_direct_load(QString filename)
         {
             removeSliders();
 
-            te_script->setText(QString(file.readAll()));
+            te_script->setPlainText(QString(file.readAll()));
             file.close();
 
             this->setWindowTitle(QString("SvgScript %1 - ").arg(version)+filename);
@@ -209,13 +212,33 @@ void MainWindow::slot_run()
     engine.globalObject().setProperty("$pi", M_PI);
     pe=&engine;
 
-    QStringList content=comment(te_script->toPlainText()).split(";");
+    QString raw_content=te_script->toPlainText();
+    QStringList content=comment(raw_content).split(";");
+    QStringList content_lines=raw_content.split("\n");
+
+
 
     Err err=process(content);
-
-    if(err.line)
+    int index=0,err_line=-1;
+    for(int k=0;k<content_lines.size();k++)
     {
-        te_console->append(QString("Erreur Ligne %1 : %2").arg(err.line+1).arg(err.what));
+        if(content_lines[k].contains(";"))
+        {
+            index++;
+        }
+        if(index==err.id)err_line=k;
+    }
+
+    if(err.id)
+    {
+        te_script->setError(err_line+1,true);
+        te_console->append(QString("Erreur Ligne %1 : %2 \n").arg(err_line+2).arg(err.cmd));
+        help(err.cmd);
+        te_script->update();
+    }
+    else
+    {
+        te_script->setError(err_line,false);
     }
 
     w_svg->load(current_svg_path);
@@ -286,7 +309,7 @@ double getEllipticStep(double ra,double rb,double theta,double dL)
     return step;
 }
 
-double getEllipticStepL(double ra,double rb,double dL,int N)
+double getEllipticStepL(double ra,double rb,double dL,int N,double dtheta)
 {
     double Lstep=dL*2;
 
@@ -298,7 +321,7 @@ double getEllipticStepL(double ra,double rb,double dL,int N)
         {
             theta+=getEllipticStep(ra,rb,theta,Lstep);
         }
-        dt=2*M_PI-theta;
+        dt=dtheta*TO_RAD-theta;
 
         if(dt>0){Lstep+=0.5*evalEllipticStep(ra,rb,theta,dt)/N;}
         else{Lstep-=0.5*evalEllipticStep(ra,rb,0,std::abs(dt))/N;}
@@ -317,7 +340,9 @@ void MainWindow::draw_ellipseCreneaux(
         double dL,
         int n,
         int mode,
-        double offset)
+        double offset,
+        double theta0,
+        double dtheta)
 {
     if(n>=0 && n<3)return;
     if(rb<ra/10)return;
@@ -325,13 +350,13 @@ void MainWindow::draw_ellipseCreneaux(
     if(ra<0)return;
     if(rb<0)return;
 
-    double Le=getEllipsePerimetre(ra,rb);
+    double Le=getEllipsePerimetre(ra,rb)*dtheta/360.0;
     //Calcul du nombre de creneaux dans L
     int N= (n==-1) ? Le/(2.0*dL)-2.0 : n;
 
-    double theta=0;
+    double theta=theta0*TO_RAD+M_PI;
 
-    double Lstep=getEllipticStepL(ra,rb,dL,N);//Le/N;
+    double Lstep=getEllipticStepL(ra,rb,dL,N,dtheta);//Le/N;
 
     for(int i=0;i<N;i++)
     {
@@ -356,11 +381,24 @@ void MainWindow::draw_ellipseCreneaux(
         if(mode==2 || mode==1)
         {
             QPointF cp=line.p1();
-            cp+=u*Eps+offset*u;pts.lineTo(cp);
+            if(i==0)pts.moveTo(cp);
+            cp+=u*Eps+offset*u; pts.lineTo(cp);
             cp+=v*E;pts.lineTo(cp);
             cp+=u*dL;pts.lineTo(cp);
             cp-=v*E;pts.lineTo(cp);
-            cp+=u*Eps-offset*u;pts.lineTo(cp);
+
+            cp+=u*Eps-offset*u;
+        }
+        else if(mode==4)
+        {
+            QPointF cp=line.p1();
+            cp+=u*Eps+offset*u; pts.moveTo(cp);
+            cp+=v*E;pts.lineTo(cp);
+            cp+=u*dL;pts.lineTo(cp);
+            cp-=v*E;pts.lineTo(cp);
+            cp-=u*dL;pts.lineTo(cp);
+            cp+=u*dL;
+            cp+=u*Eps-offset*u;
         }
         else if(mode==3)
         {
@@ -375,7 +413,14 @@ void MainWindow::draw_ellipseCreneaux(
 
             if(i==0)
             {
-                pts.moveTo(QPointF(cp6.x(),cp6.y()-2*(cp6.y()-center.y())));
+                if(dtheta!=360)
+                {
+                    pts.moveTo(cp6);
+                }
+                else
+                {
+                    pts.moveTo(QPointF(cp6.x(),cp6.y()-2*(cp6.y()-center.y())));
+                }
             }
 
             pts.lineTo(cp6);
@@ -394,10 +439,9 @@ void MainWindow::draw_ellipseCreneaux(
 
     if(mode==3)
     {
-        //pts.moveTo(center+QPointF((ra-E/2),0));
-        //pts.arcTo(QRectF(center.x()-(ra-E/2),center.y()-(rb-E/2),2*(ra-E/2),2*(rb-E/2)),0 ,360);
-        pts.moveTo(center+QPointF((ra+E*1.5),0));
-        pts.arcTo(QRectF(center.x()-(ra+E*1.5),center.y()-(rb+E*1.5),2*(ra+E*1.5),2*(rb+E*1.5)),0 ,360);
+        pts.moveTo(center+QPointF( (ra+E*1.5)*cos(theta0*TO_RAD),
+                                  -(ra+E*1.5)*sin(theta0*TO_RAD) ));
+        pts.arcTo(QRectF(center.x()-(ra+E*1.5),center.y()-(rb+E*1.5),2*(ra+E*1.5),2*(rb+E*1.5)),theta0 ,dtheta);
     }
 
     this->te_console->append(QString("DEFINE Lstep=%1  Nstep=%2").arg(Lstep).arg(N));
@@ -417,7 +461,7 @@ void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double
         if(mode==2){v=-v;}
 
         //Calcul du nombre de creneaux dans L
-        int N= (n==-1) ? L/(2.0*dL)-2.0 : n;
+        int N= (n==-1) ? round(L/(2.0*dL))-2.0 : n;
 
         //Calcul du reste Epsilon
         double Eps=(L-(N*2.0*dL+dL))/2.0;
@@ -473,7 +517,46 @@ void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double
             pts.lineTo(cp);
         }
     }
-    else if(mode==4 || mode==5)
+    else if(mode==4)
+    {
+        double L=line.length();
+
+        //Base
+        QPointF u(line.dx()/L,line.dy()/L);
+        QPointF v(u.y(),-u.x());
+        if(mode==2){v=-v;}
+
+        //Calcul du nombre de creneaux dans L
+        int N= (n==-1) ? round(L/(2.0*dL))-2.0 : n;
+
+        //Calcul du reste Epsilon
+        double Eps=(L-(N*2.0*dL+dL))/2.0;
+
+        //On dessine tout cela
+        QPointF cp=line.p1();
+        cp+=u*Eps+offset*u;pts.moveTo(cp);
+
+        for(int i=0;i<N;i++)
+        {
+            pts.moveTo(cp);
+            cp+=v*E;pts.lineTo(cp);
+            cp+=u*dL;pts.lineTo(cp);
+            cp-=v*E;pts.lineTo(cp);
+            cp-=u*dL;pts.lineTo(cp);
+
+            cp+=2*u*dL;
+        }
+
+        pts.moveTo(cp);
+        cp+=v*E;pts.lineTo(cp);
+        cp+=u*dL;pts.lineTo(cp);
+        cp-=v*E;pts.lineTo(cp);
+        cp-=u*dL;pts.lineTo(cp);
+
+        cp+=u*dL;
+        cp+=u*Eps-offset*u;pts.moveTo(cp);
+    }
+    else if(mode==5 || mode==6)
     {
         double L=line.length();
 
@@ -620,6 +703,48 @@ QPainterPath getPuzzleShape(QLineF line,int mode)
     return path;
 }
 
+QPainterPath MainWindow::draw_circle_tangent(QLineF line,double alpha)
+{
+    QPainterPath path;
+    QPointF A=line.p1();
+    QPointF B=line.p2();
+
+    if(alpha>0)
+    {
+        double L=line.length();
+        double r=L/(2*sin(alpha*TO_RAD));
+
+        QPointF u(line.dx(),line.dy());
+        QPointF v(u.y(),-u.x());
+        QPointF center=(line.p1()+line.p2())/2.0;
+
+        double y=(L)/2.0;
+        double x=sqrt(r*r-y*y);
+        double dtheta=2*atan(y/x)*TO_DEG;
+
+        QPointF C=center+v/L*x;
+        QPointF V=(A-C)/r;
+        double theta0=atan2(-V.y(),V.x())*TO_DEG;
+
+        path.moveTo(A);
+        path.arcTo(C.x()-r,C.y()-r,2*r,2*r,theta0, dtheta);
+
+        this->te_console->append(QString("DRAW_TANGENT_CIRCLE --> DEFINE Cx=%1  Cy=%2  Ra=%3 theta0=%4 dtheta=%5").arg(C.x()).arg(C.y()).arg(r).arg(theta0).arg(dtheta));
+        pe->globalObject().setProperty("Cx",C.x());
+        pe->globalObject().setProperty("Cy",C.y());
+        pe->globalObject().setProperty("Ra",r);
+        pe->globalObject().setProperty("theta0",theta0);
+        pe->globalObject().setProperty("dtheta",dtheta);
+    }
+    else
+    {
+        path.moveTo(A);
+        path.lineTo(B);
+    }
+
+    return path;
+}
+
 QPainterPath getRosaceElement(QLineF line,double du,double r)
 {
     QPainterPath path;
@@ -635,8 +760,6 @@ QPainterPath getRosaceElement(QLineF line,double du,double r)
     double y=(L-2*du)/2.0;
     double x=sqrt(r*r-y*y);
 
-    std::cout<<x<<" "<<y<<" "<<r<<std::endl;
-
     QPointF C1=center+v/L*x;
     QPointF C2=center-v/L*x;
 
@@ -650,7 +773,6 @@ QPainterPath getRosaceElement(QLineF line,double du,double r)
 
     path.moveTo(A);
 
-    std::cout<<atan2(-V1.y(),V1.x())*180/M_PI<<std::endl;
 
     path.arcTo(C1.x()-r,C1.y()-r,2*r,2*r,atan2(-V1.y(),V1.x())*180/M_PI, dtheta);
     path.arcTo(C2.x()-r,C2.y()-r,2*r,2*r,atan2(-V2.y(),V2.x())*180/M_PI, dtheta);
@@ -1222,6 +1344,23 @@ void MainWindow::draw_gear_r(QPainterPath & path, double m, int n, double alpha,
 
 }
 
+void MainWindow::help(QString cmd)
+{
+    bool found=false;
+    for(int i=0;i<NB_CMD;i++)
+    {
+        if(CommandsList[i].keyword==cmd || cmd=="all")
+        {
+            te_console->append(QString("%1 %2\n").arg(CommandsList[i].keyword).arg(CommandsList[i].help));
+            found=true;
+        }
+    }
+    if(!found)
+    {
+        te_console->append(QString("%1 : Not Found").arg(cmd));
+    }
+}
+
 Err MainWindow::process(QStringList content)
 {
     transform.reset();
@@ -1310,14 +1449,22 @@ Err MainWindow::process(QStringList content)
 
                 painter.setBrush(brush);
             }
-            else if(args.size()==8 && args[0]==QString("DRAW_CIRCLE_CRENEAUX"))//Ok
+            else if((args.size()==8 || args.size()==10) && args[0]==QString("DRAW_CIRCLE_CRENEAUX"))//Ok
             {
                 QPainterPath path;
                 QPointF c= QPointF(exp(args[1]),exp(args[2]));
                 double r=exp(args[3]);
 
                 path.moveTo(c+QPointF(r,0));
-                draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+
+                if(args.size()==8)
+                {
+                    draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+                }
+                else
+                {
+                    draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),0,exp(args[8]),exp(args[9]));
+                }
 
                 painter.drawPath(transform.map(path));
             }
@@ -1328,7 +1475,7 @@ Err MainWindow::process(QStringList content)
                 double ra=exp(args[3]),rb=exp(args[4]);
 
                 path.moveTo(c+QPointF(ra,0));
-                draw_ellipseCreneaux(path,c,ra,rb,exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]));
+                draw_ellipseCreneaux(path,c,ra,rb,exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),0);
 
                 painter.drawPath(transform.map(path));
             }
@@ -1555,19 +1702,7 @@ Err MainWindow::process(QStringList content)
             }
             else if(args.size()==2 && args[0]==QString("HELP"))//Ok
             {
-                bool found=false;
-                for(int i=0;i<NB_CMD;i++)
-                {
-                    if(CommandsList[i].keyword==args[1] || args[1]=="all")
-                    {
-                        te_console->append(QString("%1 %2\n").arg(CommandsList[i].keyword).arg(CommandsList[i].help));
-                        found=true;
-                    }
-                }
-                if(!found)
-                {
-                    te_console->append(QString("%1 : Not Found").arg(args[1]));
-                }
+                help(args[1]);
             }
             else if(args.size()==7 && args[0]==QString("DRAW_FLEX"))//Ok
             {
@@ -1922,9 +2057,14 @@ Err MainWindow::process(QStringList content)
             {
                 draw_pendule(painter,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
             }
+            else if(args.size()==6 && args[0]==QString("DRAW_CIRCLE_TANGENT"))
+            {
+                QPainterPath path=draw_circle_tangent(QLineF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]));
+                painter.drawPath(transform.map(path));
+            }
             else
             {
-                return Err(i,args[0]+QString(" : Commande inconnue ou mauvais nombre d'arguments (%1)").arg(args.size()));
+                return Err(i,args[0]);
             }
         }
     }

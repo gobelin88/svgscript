@@ -14,13 +14,13 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 35
+#define NB_CMD 36
 static const Command CommandsList[NB_CMD]={
     Command("HELP",              QObject::tr("Lol")),
 
     Command("SVG_BEGIN",         QObject::tr("W H :\n\nCrée un SVG de dimension (W,H). Une instruction SVG_END devra terminer le script.")),
     Command("SVG_END",           QObject::tr(" :\n\nTermine le script et enregistre le SVG.")),
-    Command("SVG_PEN",           QObject::tr("r v b t:\n\nDéfinit la couleur (r,v,b) et le type (t) du crayon. (t) peut prendre les valeurs (None,Solid,Dash,Dot).")),
+    Command("SVG_PEN",           QObject::tr("r v b size t:\n\nDéfinit la couleur (r,v,b), la taille (size) et le type (t) du crayon. (t) peut prendre les valeurs (None,Solid,Dash,Dot).")),
     Command("SVG_BRUSH",         QObject::tr("r v b t:\n\nDéfinit la couleur (r,v,b) et le type (t) du pinceau. (t) peut prendre les valeurs (None,Solid).")),
 
     Command("DEFINE",            QObject::tr("var value :\n\nDéfinition ou modification d'une variable (var) avec la valeur (val).")),
@@ -33,13 +33,15 @@ static const Command CommandsList[NB_CMD]={
     Command("TRANSFORM_TRANSLATE",QObject::tr("dx dy:\n\n Translation de vecteur (dx,dy) de la transformation courante.")),
     Command("TRANSFORM_SCALE",    QObject::tr("sx sy:\n\n Facteur d'echelle sur la transformation courante.")),
 
-    Command("DRAW_FLEX",         QObject::tr("x y w h a b\n\nDessine une zone flexible rectangulaire dont le coin supérieur gauche est en (x,y) de largeur (w) et de hauteur (h). Puis dessine des traits de manière de longueur (b) et espacé de (a)")),
-    Command("DRAW_PATH",         QObject::tr(" T ... \n\nDessine un chemin continu. la commande T peut prendre les valeurs (M,L,C,E) chacune doit être suivie des commandes appropriés \n\nM x y: Move to (x,y)\nL x y: Line to (x,y)\nC x y r a b:Circle to (x,y) de rayon (r) d'angle de depart (a) et d'angle (b)\nE x y ra rb a b:Ellipse to (x,y) de rayons (ra,rb) d'angle de depart (a) et d'angle (b)..")),
-    Command("DRAW_PATH_R",       QObject::tr(" T ... \n\nDessine un chemin continu relatif. la commande T peut prendre les valeurs (M,L,C,E) chacune doit être suivie des commandes appropriés \n\nM x y: Move to (x,y)\nL x y: Line to (x,y)\nC x y r a b:Circle to (x,y) de rayon (r) d'angle de depart (a) et d'angle (b)\nE x y ra rb a b:Ellipse to (x,y) de rayons (ra,rb) d'angle de depart (a) et d'angle (b)..")),
-    Command("DRAW_CIRCLE",       QObject::tr("x y r :\n\nDessine un cercle de rayon (r) en (x,y).")),
-    Command("DRAW_CIRCLE_CRENEAUX",       QObject::tr("x y r w dL n t:\n\nDessine un cercle de rayon (r) en (x,y).  Créneaux de longueur (dL) et d'epaisseur (w)\nLe parametre (n) nombres de creneaux -1 pour le calcul automatique et (t) le type de creneau")),
-    Command("DRAW_ELLIPSE",      QObject::tr("x y r1 r2 :\n\nDessine une ellipse de rayons (r1) et (r2) en (x,y).")),
-    Command("DRAW_ELLIPSE_CRENEAUX",      QObject::tr("x y r1 r2 w dL n t:\n\nDessine une ellipse de rayons (r1) et (r2) en (x,y). Créneaux de longueur (dL) et d'epaisseur (w)\nLe parametre (n) nombres de creneaux -1 pour le calcul automatique et (t) le type de creneau")),
+    Command("DRAW_FLEX",            QObject::tr("x y w h a b\n\nDessine une zone flexible rectangulaire dont le coin supérieur gauche est en (x,y) de largeur (w) et de hauteur (h). Puis dessine des traits de manière de longueur (b) et espacé de (a)")),
+    Command("DRAW_PATH",            QObject::tr(" T ... \n\nDessine un chemin continu. la commande T peut prendre les valeurs (M,L,C,E) chacune doit être suivie des commandes appropriés \n\nM x y: Move to (x,y)\nL x y: Line to (x,y)\nC x y r a b:Circle to (x,y) de rayon (r) d'angle de depart (a) et d'angle (b)\nE x y ra rb a b:Ellipse to (x,y) de rayons (ra,rb) d'angle de depart (a) et d'angle (b)..")),
+    Command("DRAW_PATH_R",          QObject::tr(" T ... \n\nDessine un chemin continu relatif. la commande T peut prendre les valeurs (M,L,C,E) chacune doit être suivie des commandes appropriés \n\nM x y: Move to (x,y)\nL x y: Line to (x,y)\nC x y r a b:Circle to (x,y) de rayon (r) d'angle de depart (a) et d'angle (b)\nE x y ra rb a b:Ellipse to (x,y) de rayons (ra,rb) d'angle de depart (a) et d'angle (b)..")),
+    Command("DRAW_CIRCLE",          QObject::tr("x y r :\n\nDessine un cercle de rayon (r) en (x,y).")),
+    Command("DRAW_CIRCLE_CRENEAUX", QObject::tr("x y r w dL n t:\n\nDessine un cercle de rayon (r) en (x,y).  Créneaux de longueur (dL) et d'epaisseur (w)\nLe parametre (n) nombres de creneaux -1 pour le calcul automatique et (t) le type de creneau")),
+    Command("DRAW_ELLIPSE",         QObject::tr("x y r1 r2 :\n\nDessine une ellipse de rayons (r1) et (r2) en (x,y).")),
+    Command("DRAW_ELLIPSE_CRENEAUX",QObject::tr("x y r1 r2 w dL n t:\n\nDessine une ellipse de rayons (r1) et (r2) en (x,y). Créneaux de longueur (dL) et d'epaisseur (w)\nLe parametre (n) nombres de creneaux -1 pour le calcul automatique et (t) le type de creneau")),
+    Command("DRAW_CIRCLE_TANGENT",  QObject::tr("x1 y1 x2 y2 alpha:\n\n Dessine un arc de cercle passant par les points (x1,y1) et (x2,y2) avec une tangente d'angle (alpha)") ),
+
 
     Command("DRAW_LINE",         QObject::tr("x1 y1 x2 y2 :\n\nDessine une ligne du point (x1,y2) au point (x2,y2).")),
     Command("DRAW_LINE_CRENEAUX",QObject::tr("x1 y1 x2 y2 w dL n t (d):\n\nDessine une ligne en créneau de longueur (dL) et d'epaisseur (w) du point (x1,y2) au point (x2,y2).\nLe parametre (n) nombres de creneaux -1 pour le calcul automatique et (t) le type de creneau.")),

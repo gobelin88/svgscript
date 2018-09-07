@@ -1,0 +1,83 @@
+DEFINE E 15;
+SLIDE  L 100 80 200;
+SLIDE  H 100 80 200;
+SLIDE alpha 10 1 90;
+
+//-------------------------------------------------------------
+DEFINE mdL 0.5;
+DEFINE X 150;
+DEFINE Y 100;
+DEFINE W 5;
+DEFINE dL 5;
+DEFINE N 10;
+
+SVG_BEGIN 512 512;
+
+
+SVG_PEN 0 0 0 0.1 Solid;
+DRAW_CIRCLE_TANGENT X+100 Y X Y alpha;
+
+SVG_PEN 255 0 0 0.5 Solid;
+DRAW_CIRCLE_CRENEAUX Cx Cy Ra W dL+mdL 10 4 theta0 dtheta;
+
+DRAW_CIRCLE Cx Cy Ra+E*1.5 theta0 dtheta;
+DRAW_CIRCLE Cx Cy Ra-E/2 theta0 dtheta;
+
+TRANSFORM_ROTATE X+100 Y alpha;
+DRAW_LINE_CRENEAUX 
+X+100 Y 
+X+100+L Y
+W dL -1 4;
+DRAW_LINE
+X+100 Y+E/2
+X+100+L Y+E/2;
+DRAW_LINE
+X+100 Y-E*1.5
+X+100+L Y-E*1.5;
+DRAW_CIRCLE X+100+L Y-E/2 E 270 180;
+
+
+TRANSFORM_ROTATE X+100 Y -alpha;
+
+TRANSFORM_ROTATE X Y -alpha;
+DRAW_LINE_CRENEAUX 
+X-L Y 
+X Y
+W dL -1 4;
+DRAW_LINE
+X Y+E/2
+X-L Y+E/2;
+DRAW_LINE
+X Y-E*1.5
+X-L Y-E*1.5;
+DRAW_CIRCLE X-L Y-E/2 E 90 180;
+
+TRANSFORM_ROTATE X Y alpha;
+
+//Plateau-----------------------------------------------------------------------------
+DRAW_RECT_CRENEAUX X-L Y+E*3 L H W dL 
+-1 0 -1 0
+1 -1 1 -1;
+
+DRAW_LINE 
+ X-L Y+E*3
+ X-L Y+E*3+H;
+
+DEFINE K 0;
+LABEL K;
+
+DRAW_RECT_CRENEAUX X+Lstep*K Y+E*3 Lstep H W dL 
+0 0 0 0
+1 -1 1 -1;
+
+GOTO K Nstep;
+
+DRAW_RECT_CRENEAUX X+Lstep*K Y+E*3 L H W dL 
+-1 0 -1 0
+1 -1 1 -1;
+
+DRAW_LINE 
+X+Lstep*K+L Y+E*3
+X+Lstep*K+L Y+E*3+H;
+
+SVG_END;

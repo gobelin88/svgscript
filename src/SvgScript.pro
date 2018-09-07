@@ -26,15 +26,17 @@ SOURCES += \
         mainwindow.cpp \
     Highlighter.cpp \
     obj.cpp \
-    displayer.cpp
+    displayer.cpp \
+    codeeditor.cpp
 
 HEADERS += \
         mainwindow.h \
     Highlighter.h \
     obj.h \
     drawable.h \
-    displayer.h
+    displayer.h \
+    codeeditor.h
 
 FORMS += mainwindow.ui
 
-INCLUDEPATH += C:/Eigen334
+INCLUDEPATH += D:/Eigen335
