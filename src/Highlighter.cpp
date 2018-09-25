@@ -33,7 +33,8 @@ Highlighter::Highlighter(QTextDocument *parent)
     subkeywordFormat.setForeground(Qt::cyan);
     subkeywordFormat.setFontWeight(QFont::Bold);
     QStringList subkeywordPatterns;
-    subkeywordPatterns << "\\bNone\\b"<< "\\bSolid\\b"<< "\\bDash\\b" << "\\bDot\\b"<<"\\bMath\\b"
+    subkeywordPatterns <<"\\bNone\\b"<< "\\bSolid\\b"<< "\\bDash\\b" << "\\bDot\\b"<<"\\bMath\\b"
+                       <<"\\bpi\\b"<< "\\btorad\\b"<< "\\btodeg\\b"
                        <<"\\bArial\\b"<<"\\bHelvetica\\b"<<"\\bTimes\\b"<<"\\bRoman\\b"<<"\\bCourier\\b";
 
     foreach (const QString &pattern, subkeywordPatterns) {

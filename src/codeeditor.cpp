@@ -27,9 +27,7 @@ int CodeEditor::lineNumberAreaWidth()
         ++digits;
     }
 
-    int space = 18 ;//+ fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
-
-    return space;
+    return 3+6*digits;
 }
 
 

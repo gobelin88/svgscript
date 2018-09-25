@@ -210,6 +210,8 @@ void MainWindow::slot_run()
 {
     QScriptEngine engine;
     engine.globalObject().setProperty("$pi", M_PI);
+    engine.globalObject().setProperty("$torad", M_PI/180.0);
+    engine.globalObject().setProperty("$todeg", 180.0/M_PI);
     pe=&engine;
 
     QString raw_content=te_script->toPlainText();
@@ -1348,7 +1350,7 @@ void MainWindow::help(QString cmd)
     bool found=false;
     for(int i=0;i<NB_CMD;i++)
     {
-        if(CommandsList[i].keyword==cmd || cmd=="all")
+        if(CommandsList[i].keyword.contains(cmd) || cmd=="all")
         {
             te_console->append(QString("%1 %2\n").arg(CommandsList[i].keyword).arg(CommandsList[i].help));
             found=true;
@@ -1358,6 +1360,49 @@ void MainWindow::help(QString cmd)
     {
         te_console->append(QString("%1 : Not Found").arg(cmd));
     }
+}
+
+QColor getMoyPix(QRect rect,QImage & img)
+{
+    unsigned int pix_r=0;
+    unsigned int pix_g=0;
+    unsigned int pix_b=0;
+
+    for(int i=rect.x();i<rect.x()+rect.width();i++)
+    {
+        for(int j=rect.y();j<rect.y()+rect.height();j++)
+        {
+            QRgb pix=img.pixel(i,j);
+            pix_r+=qRed(pix);
+            pix_g+=qGreen(pix);
+            pix_b+=qBlue(pix);
+        }
+    }
+    unsigned int s=(rect.width()*rect.height());
+    return QColor(std::round(double(pix_r)/s),
+                  std::round(double(pix_g)/s),
+                  std::round(double(pix_b)/s));
+}
+
+QColor nearest(QColor c, std::vector<QColor> & list)
+{
+    unsigned int dist=255*255*3;
+    QColor nearest_color=list[0];
+
+    for(int i=0;i<list.size();i++)
+    {
+        int dr=list[i].red()-c.red();
+        int dg=list[i].green()-c.green();
+        int db=list[i].blue()-c.blue();
+        int cdist=dr*dr+dg*dg+db*db;
+
+        if( cdist<dist )
+        {
+            dist=cdist;
+            nearest_color=list[i];
+        }
+    }
+    return nearest_color;
 }
 
 Err MainWindow::process(QStringList content)
@@ -1389,11 +1434,42 @@ Err MainWindow::process(QStringList content)
                 QPointF Op(exp(args[1]),exp(args[2]));
                 QPointF Sp(exp(args[3]),exp(args[4]));
                 QPointF Cp=transform.map(Op+Sp/2);
-
                 QRectF area(Cp-Sp/2,Cp+Sp/2);
-
                 QImage img(args[5]);
                 painter.drawImage(area,img);
+            }
+            else if(args.size()>=8 && (args.size()-8)%3==0 && args[0]==QString("IMG_PIXEL"))//Ok
+            {
+                std::vector<QColor> colors;
+                colors.push_back(QColor(0,0,0));
+                colors.push_back(QColor(255,255,255));
+                for(int k=0;k<args.size()-8;k+=3)
+                {
+                    colors.push_back(QColor(exp(args[k+8]),exp(args[k+9]),exp(args[k+10])));
+                }
+
+                QPointF Op(exp(args[1]),exp(args[2]));
+                QPointF Sp(exp(args[3]),exp(args[4]));
+                QPointF Cp=transform.map(Op+Sp/2);
+                QRectF area( Cp-Sp/2 , Cp+Sp/2 );
+                QImage img(args[5]);
+                unsigned int dx=round(exp(args[6])),dy=round(exp(args[7]));
+
+                for(int i=0;i<dx;i++)
+                {
+                    for(int j=0;j<dy;j++)
+                    {
+                        painter.setBrush(nearest(getMoyPix(QRect(i*img.width()/dx,
+                                                         j*img.height()/dy,
+                                                         img.width()/dx,
+                                                         img.height()/dy),
+                                                         img),colors));
+                        painter.drawRect(QRectF(i*area.width()/dx+area.x(),
+                                                j*area.height()/dy+area.y(),
+                                                area.width()/dx,
+                                                area.height()/dy));
+                    }
+                }
             }
             else if(args.size()==3 && args[0]==QString("SVG_BEGIN"))//Ok
             {
