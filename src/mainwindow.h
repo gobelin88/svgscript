@@ -80,6 +80,9 @@ public slots:
     void initSliders();
 
 private:
+    std::vector<std::vector<double>> loadCSV(QString filename);
+    bool plot(QPainter &painter, QPainterPath &path, QRectF area, double scaleX, double scaleY, QString filename, int idX, int idY);
+
     Ui::MainWindow *ui;
 
     QHBoxLayout * l_pb;
@@ -235,6 +238,8 @@ signals:
     void deleted(QString varname);
 
 private:
+
+
     QString varname;
     double min,max,valuef,value_init;
     MainWindow * gui;

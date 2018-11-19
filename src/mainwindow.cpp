@@ -1460,10 +1460,10 @@ Err MainWindow::process(QStringList content)
                     for(int j=0;j<dy;j++)
                     {
                         painter.setBrush(nearest(getMoyPix(QRect(i*img.width()/dx,
-                                                         j*img.height()/dy,
-                                                         img.width()/dx,
-                                                         img.height()/dy),
-                                                         img),colors));
+                                                                 j*img.height()/dy,
+                                                                 img.width()/dx,
+                                                                 img.height()/dy),
+                                                           img),colors));
                         painter.drawRect(QRectF(i*area.width()/dx+area.x(),
                                                 j*area.height()/dy+area.y(),
                                                 area.width()/dx,
@@ -2154,6 +2154,18 @@ Err MainWindow::process(QStringList content)
                 QPainterPath path=draw_circle_tangent(QLineF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]));
                 painter.drawPath(transform.map(path));
             }
+            else if(args.size()==10 && args[0]==QString("PLOT"))
+            {
+                QPainterPath path;
+                bool ok=plot(painter,path,QRectF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),
+                        exp(args[5]),exp(args[6]),
+                        args[7],
+                        exp(args[8]),exp(args[9]));
+
+                if(!ok)return Err(i,args[0]);
+
+                painter.drawPath(transform.map(path));
+            }
             else
             {
                 return Err(i,args[0]);
@@ -2162,4 +2174,93 @@ Err MainWindow::process(QStringList content)
     }
 
     return Err(0,"Pas d'erreur");
+}
+
+std::vector<std::vector<double>> MainWindow::loadCSV(QString filename)
+{
+    std::vector<std::vector<double>> data;
+
+    QFile file(filename);
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        int id=0;
+        while(!file.atEnd())
+        {
+            QStringList line=QString(file.readLine()).split(";");
+
+            if(id==0)
+            {
+                data.resize(line.size());
+            }
+            else if(data.size()==line.size())
+            {
+                for(int i=0;i<data.size();i++)
+                {
+                    data[i].push_back(line[i].toDouble());
+                }
+            }
+            else
+            {
+                std::cout<<"Load CSV error line :"<<id<<std::endl;
+            }
+
+            id++;
+        }
+
+        file.close();
+    }
+
+    return data;
+}
+
+QPointF getScaled(const QPointF & p,const QRectF & area,const  QRectF & scale)
+{
+    return QPointF (
+                (p.x()-scale.x())/scale.width ()*area.width ()+area.x(),
+                (p.y()-scale.y())/scale.height()*area.height()+area.y());
+}
+
+bool MainWindow::plot(QPainter & painter,QPainterPath & path,QRectF area, double scaleX, double scaleY, QString filename, int idX,int idY)
+{
+    //Load Data
+    std::vector<std::vector<double>> data=loadCSV(filename);
+    if(data.size()>0)
+    {
+        te_console->append(QString("PLOT : Load CSV size=(%1 x %2)").arg(data[0].size()).arg(data.size()));
+    }
+    else
+    {
+        te_console->append(QString("PLOT : Load CSV failed"));
+        return false;
+    }
+
+    if(idX>=data.size() && idY>=data.size()){te_console->append(QString("PLOT : Out of range"));return false;}
+
+    //Plot data
+    QRectF scale;
+    double minX=*std::min_element(data[idX].begin(),data[idX].end());
+    double minY=*std::min_element(data[idY].begin(),data[idY].end());
+    double deltaX=*std::max_element(data[idX].begin(),data[idX].end())-minX;
+    double deltaY=*std::max_element(data[idY].begin(),data[idY].end())-minY;
+    double meanX=minX+deltaX*0.5,meanY=minY+deltaY*0.5;
+
+    scale.setX( meanX -deltaX/2 * scaleX);
+    scale.setY( meanY -deltaY/2 * scaleY );
+    scale.setWidth ( deltaX * scaleX);
+    scale.setHeight( deltaY * scaleY);
+
+    for(int i=0;i<data[idX].size();i++)
+    {
+        QPointF p(data[idX][i],data[idY][i]);
+        QPointF ps=getScaled(p,area,scale);
+
+        if(i==0){path.moveTo(ps);}
+        else{path.lineTo(ps);}
+    }
+
+    path.addText(getScaled( QPointF(minX+deltaX,minY)  ,area,scale) ,painter.font(), QString(".%1").arg(minY) );
+    path.addText(getScaled( QPointF(minX+deltaX,meanY)  ,area,scale) ,painter.font(), QString("dY=%1").arg(deltaY) );
+    path.addText(getScaled( QPointF(minX+deltaX,minY+deltaY)  ,area,scale) ,painter.font(), QString(".%1").arg(minY+deltaY) );
+
+    return true;
 }
