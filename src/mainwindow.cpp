@@ -450,6 +450,30 @@ void MainWindow::draw_ellipseCreneaux(
     pe->globalObject().setProperty("Nstep",N);
 }
 
+void clip(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
+{
+    double ra=0.3, rb=1.2;
+    double dr=2.5,m=ra;
+
+    cp+=v*E;pts.lineTo(cp);
+
+    cp-=u*ra;pts.lineTo(cp);
+    cp+=v*rb+u*ra;pts.lineTo(cp);
+
+    cp+=u*dr;pts.lineTo(cp);
+    cp-=v*(rb+E);pts.lineTo(cp);
+    cp+=v*(rb+E)+u*m;pts.lineTo(cp);
+    cp+=u*(dL-2*(dr+m));pts.lineTo(cp);
+    cp-=v*(rb+E)-u*m;pts.lineTo(cp);
+    cp+=v*(rb+E);pts.lineTo(cp);
+    cp+=u*dr;pts.lineTo(cp);
+
+    cp-=v*rb-u*ra;pts.lineTo(cp);
+    cp-=u*ra;pts.lineTo(cp);
+
+    cp-=v*E;pts.lineTo(cp);
+}
+
 void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double E,double dL,int n,int mode,double offset)
 {
     if(mode==1 || mode==2)
@@ -493,30 +517,30 @@ void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double
     }
     else if(mode==3)
     {
-        double flat=(n>=0)?dL*n:0;
-
         double L=line.length();
-        double R=L/2-flat/2.0;
+
+        //Base
         QPointF u(line.dx()/L,line.dy()/L);
         QPointF v(u.y(),-u.x());
-        QPointF ca=line.p1()+u*L/2.0-u*flat/2.0;
-        QPointF cb=line.p1()+u*L/2.0+u*flat/2.0;
+        if(mode==2){v=-v;}
 
-        QPointF cp;
-        int res=20;
-        for(int i=0;i<res;i++)
-        {
-            double theta=M_PI/(2*res)*i;
-            cp=ca-R*cos(theta)*u+R*sin(theta)*v;
-            pts.lineTo(cp);
-        }
+        //Calcul du nombre de creneaux dans L
+        int N= (n==-1) ? round(L/(2.0*dL))-2.0 : n;
 
-        for(int i=0;i<res;i++)
+        //Calcul du reste Epsilon
+        double Eps=(L-(N*2.0*dL+dL))/2.0;
+
+        //On dessine tout cela
+        QPointF cp=line.p1();
+        cp+=u*Eps+offset*u;pts.lineTo(cp);
+
+        for(int i=0;i<N;i++)
         {
-            double theta=M_PI/(2*res)*i+M_PI*0.5;
-            cp=cb-R*cos(theta)*u+R*sin(theta)*v;
-            pts.lineTo(cp);
+            clip(pts,cp,u,v,E,dL);
+            cp+=u*dL;pts.lineTo(cp);
         }
+        clip(pts,cp,u,v,E,dL);
+        cp+=u*Eps-offset*u;pts.lineTo(cp);
     }
     else if(mode==4)
     {
