@@ -34,6 +34,10 @@ public:
 
     void draw(QOpenGLFunctions_1_0 *f);
 
+    void drawProj(QPainterPath &path, QPointF c, int mode);
+
+    bool isOpen(){return open;}
+
 private:
     Vector2d getGnomonic(Vector3d p);
     Vector2d getGnomonicProj(Base & b,Vector3d p,Vector3d bary);
@@ -76,6 +80,8 @@ private:
     Matrix3d Ry(double ang);
     Matrix3d Rz(double ang);
     Matrix3d matFromEular(double yaw,double pitch,double roll);
+
+    bool open;
 };
 
 

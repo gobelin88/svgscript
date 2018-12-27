@@ -55,7 +55,10 @@ public:
     ~MainWindow();
     void loadStyle(QString filename);
 
-    void calcGnomonicProjection(QPainter & painter,
+    bool calcProjection(QPainterPath & path,QString obj_filename,QPointF c,Vector3d euler_angles,float scale,int mode);
+
+
+    bool calcGnomonicProjection(QPainter & painter,
                                 QString obj_filename,
                                 QString map_filename,
                                 int res,

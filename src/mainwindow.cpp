@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     te_console=new QTextEdit();
 
     highlighter=new Highlighter(te_script->document());
+    highlighter=new Highlighter(te_console->document());
 
     scroll=new QScrollArea();
     w_svg=new QSvgWidget();
@@ -453,7 +454,7 @@ void MainWindow::draw_ellipseCreneaux(
 void clip(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
 {
     double ra=0.3, rb=1.2;
-    double dr=2.5,m=ra;
+    double dr=2,m=ra;
 
     cp+=v*E;pts.lineTo(cp);
 
@@ -466,6 +467,28 @@ void clip(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,do
     cp+=u*(dL-2*(dr+m));pts.lineTo(cp);
     cp-=v*(rb+E)-u*m;pts.lineTo(cp);
     cp+=v*(rb+E);pts.lineTo(cp);
+    cp+=u*dr;pts.lineTo(cp);
+
+    cp-=v*rb-u*ra;pts.lineTo(cp);
+    cp-=u*ra;pts.lineTo(cp);
+
+    cp-=v*E;pts.lineTo(cp);
+}
+
+void clipb(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
+{
+    double ra=0.3, rb=1.2;
+    double dr=2,m=ra;
+
+    cp+=v*E;pts.lineTo(cp);
+
+    cp-=u*ra;pts.lineTo(cp);
+    cp+=v*rb+u*ra;pts.lineTo(cp);
+
+    cp+=u*dr;pts.lineTo(cp);
+    cp+=u*m;pts.lineTo(cp);
+    cp+=u*(dL-2*(dr+m));pts.lineTo(cp);
+    cp+=u*m;pts.lineTo(cp);
     cp+=u*dr;pts.lineTo(cp);
 
     cp-=v*rb-u*ra;pts.lineTo(cp);
@@ -556,7 +579,48 @@ void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double
 
         cp+=u*Eps-offset*u;pts.lineTo(cp);
     }
-    else if(mode==5)
+    else if(mode==5 || mode==6)
+    {
+        double L=line.length();
+
+        //Base
+        QPointF u(line.dx()/L,line.dy()/L);
+        QPointF v(u.y(),-u.x());
+
+
+        //Calcul du nombre de creneaux dans L
+        int N= (n==-1) ? round(L/(2.0*dL))-2.0 : n;
+        if(mode==6)N-=1;
+
+        //Calcul du reste Epsilon
+        double Eps=(mode==6)?(L-((N+1)*2.0*dL+dL))/2.0:(L-((N)*2.0*dL+dL))/2.0;
+
+        //On dessine tout cela
+        QPointF cp=line.p1();
+        cp+=u*Eps+offset*u;pts.lineTo(cp);
+        if(mode==6)
+        {
+            cp-=v*E;pts.lineTo(cp);
+            cp+=u*dL;pts.lineTo(cp);
+        }
+
+
+        for(int i=0;i<N;i++)
+        {
+            clipb(pts,cp,u,v,E,dL);
+            cp+=u*dL;pts.lineTo(cp);
+        }
+        clipb(pts,cp,u,v,E,dL);
+
+        if(mode==6)
+        {
+            cp+=u*dL;pts.lineTo(cp);
+            cp+=v*E;pts.lineTo(cp);
+        }
+
+        cp+=u*Eps-offset*u;pts.lineTo(cp);
+    }
+    else if(mode==7)
     {
         double L=line.length();
 
@@ -595,7 +659,7 @@ void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double
         cp+=u*dL;
         cp+=u*Eps-offset*u;pts.moveTo(cp);
     }
-    else if(mode==6 || mode==7)
+    else if(mode==8 || mode==9)
     {
         double L=line.length();
 
@@ -904,7 +968,23 @@ QPainterPath roundRectPath(const QRectF &rect,double radius)
     return path;
 }
 
-void MainWindow::calcGnomonicProjection(QPainter & painter,
+bool MainWindow::calcProjection(QPainterPath & path,
+                                QString obj_filename,
+                                QPointF c,
+                                Vector3d euler_angles,
+                                float scale,int mode)
+{
+    std::cout<<"scale="<<scale<<std::endl;
+    Object * pobj=new Object(obj_filename,scale,euler_angles);
+    if(!pobj->isOpen()){return false;}
+
+    pobj->disp();
+    pobj->drawProj(path,c,mode);
+
+    return true;
+}
+
+bool MainWindow::calcGnomonicProjection(QPainter & painter,
                                         QString obj_filename,
                                         QString map_filename,
                                         int res,
@@ -916,7 +996,7 @@ void MainWindow::calcGnomonicProjection(QPainter & painter,
                                         double radius,int idpN,int idpS,double W,double dL,double dA,double marge)
 {
     Object * pobj=new Object(obj_filename,scale,euler_angles);
-
+    if(!pobj->isOpen()){return false;}
 
     Vector3d bary=pobj->getBarycenter();
     Vector3d bbox=pobj->getBox();
@@ -939,6 +1019,7 @@ void MainWindow::calcGnomonicProjection(QPainter & painter,
     std::cout<<std::endl;
 
     displayer->add(pobj);
+    return true;
 }
 
 void MainWindow::draw_gear(QPainterPath & path,double m,int n,double alpha,double daxe,int nb_spokes)
@@ -1616,6 +1697,31 @@ Err MainWindow::process(QStringList content)
 
                 painter.drawPath(transform.map(path));
             }
+            else if(args.size()==5 && args[0]==QString("DRAW_CROSS"))
+            {
+                QPointF c(exp(args[1]),exp(args[2]));
+                double W=exp(args[3]),L=exp(args[4]);
+
+                double A=W/2,B=(L-W)/2;
+
+                QPainterPath path;
+
+                path.moveTo(QPointF(c.x()-A,c.y()-A));
+                path.lineTo(QPointF(c.x()-A-B,c.y()-A));
+                path.lineTo(QPointF(c.x()-A-B,c.y()+A));
+                path.lineTo(QPointF(c.x()-A,c.y()+A));
+                path.lineTo(QPointF(c.x()-A,c.y()+A+B));
+                path.lineTo(QPointF(c.x()+A,c.y()+A+B));
+                path.lineTo(QPointF(c.x()+A,c.y()+A));
+                path.lineTo(QPointF(c.x()+A+B,c.y()+A));
+                path.lineTo(QPointF(c.x()+A+B,c.y()-A));
+                path.lineTo(QPointF(c.x()+A,c.y()-A));
+                path.lineTo(QPointF(c.x()+A,c.y()-A-B));
+                path.lineTo(QPointF(c.x()-A,c.y()-A-B));
+                path.lineTo(QPointF(c.x()-A,c.y()-A));
+
+                painter.drawPath(transform.map(path));
+            }
             else if(args.size()==7 && args[0]==QString("DRAW_LINE_ROSACE"))//Ok
             {
                 painter.drawPath(transform.map(getRosaceElement(QLineF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]),exp(args[6]))));
@@ -2150,11 +2256,25 @@ Err MainWindow::process(QStringList content)
                 }
                 painter.drawPath(transform.map(path));
             }
-            else if (args.size()==18 && args[0]==QString("PROJECT_OBJECT"))
+            else if (args.size()==18 && args[0]==QString("PROJECT_OBJECT_MAP"))
             {
-                calcGnomonicProjection(painter,args[1],args[2],exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),
+                bool ok=calcGnomonicProjection(painter,args[1],args[2],exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),
                         Vector3d(exp(args[8]),exp(args[9]),exp(args[10])),exp(args[11]),exp(args[12]),exp(args[13])
                         ,exp(args[14]),exp(args[15]),exp(args[16]),exp(args[17]));
+                if(!ok)return Err(i,args[0]);
+            }
+            else if (args.size()==9 && args[0]==QString("PROJECT_OBJECT"))
+            {
+                QPainterPath path;
+                bool ok=calcProjection(path,
+                               args[1],
+                        QPointF(exp(args[2]),exp(args[3])),
+                        Vector3d(exp(args[4]),exp(args[5]),exp(args[6])),
+                        exp(args[7]),exp(args[8]));
+
+                if(!ok)return Err(i,args[0]);
+
+                painter.drawPath(transform.map(path));
             }
             else if(args.size()==8 && args[0]==QString("DRAW_GEAR"))
             {

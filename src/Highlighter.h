@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 39
+#define NB_CMD 41
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -53,6 +53,7 @@ static const Command CommandsList[NB_CMD]={
     Command("DRAW_GEAR_R",          QObject::tr("x y m n alpha daxe nb_spokes :\n\n Dessine un pignon type reverse")),
     Command("DRAW_GEAR_S",          QObject::tr("x y m n daxe nb_spokes :\n\n Dessine un pignon type spikes")),
     Command("DRAW_PENDULE",         QObject::tr("x y P Theta0 daxe1 daxe2: (P)Periode (daxe1-2)Diamètres des trous (Theta0)Angle du lancer pour la correction de la période... \n\n")),
+    Command("DRAW_CROSS",           QObject::tr("x y w L :\n\n Dessine une croix centrée en (x,y) d'epaiseur (w) et le largeur/longueur (L)\n\n")),
 
     Command("IMG_LOAD"           ,  QObject::tr("x y w h filename:\n\n Dessine une image (filename) dans un rectangle (x,t,w,h).") ),
     Command("IMG_PIXEL"          ,  QObject::tr("x y w h filename dx,dy:\n\n Dessine une image (filename) dans un rectangle (x,t,w,h) en la pixelisant (dx,dy).") ),
@@ -62,7 +63,8 @@ static const Command CommandsList[NB_CMD]={
 
     Command("PLOT", QObject::tr("x y w h xmin ymin xmax ymax filename.csv A B")),
 
-    Command("PROJECT_OBJECT",       QObject::tr("file.obj ..."))
+    Command("PROJECT_OBJECT",       QObject::tr("file.obj x y euler_anglesx3 scale mode:\n\n Projection 2D d'un objet")),
+    Command("PROJECT_OBJECT_MAP",   QObject::tr("file.obj mapfile.png res scale meridiens? Nlat Nlon euler_anglesx3 radius idpN idpS W dL dA marge:\n\n"))
 };
 
 class QTextDocument;

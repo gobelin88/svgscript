@@ -37,9 +37,11 @@ Object::Object(QString filename, double scale, Vector3d euler_angles)
         computeNormals();
 
         file.close();
+        open=true;
     }
     else
     {
+        open=false;
         std::cout<<"Impossible d'ouvrir :"<<filename.toLocal8Bit().data()<<std::endl;
     }
 }
@@ -401,6 +403,29 @@ void Object::getFaceGnomonic(QPainter & painter,
             }
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    }
+}
+
+void Object::drawProj(QPainterPath & path,QPointF c,int mode)
+{
+    for(int i=0;i<faces.size();i++)
+    {
+        for(int j=0;j<faces[i].size();j++)
+        {
+            QPointF p;
+            if(mode==0)p=QPointF(pts[faces[i][j]][0],pts[faces[i][j]][1]);
+            else if(mode==1)p=QPointF(pts[faces[i][j]][1],pts[faces[i][j]][2]);
+            else if(mode==2)p=QPointF(pts[faces[i][j]][0],pts[faces[i][j]][2]);
+
+            if(j==0)
+            {
+                path.moveTo(c+p);
+            }
+            else
+            {
+                path.lineTo(c+p);
+            }
+        }
     }
 }
 
