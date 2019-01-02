@@ -27,7 +27,8 @@ SOURCES += \
     Highlighter.cpp \
     obj.cpp \
     displayer.cpp \
-    codeeditor.cpp
+    codeeditor.cpp \
+    svgview.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -35,7 +36,8 @@ HEADERS += \
     obj.h \
     drawable.h \
     displayer.h \
-    codeeditor.h
+    codeeditor.h \
+    svgview.h
 
 FORMS += mainwindow.ui
 

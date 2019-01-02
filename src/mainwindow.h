@@ -28,6 +28,8 @@
 #include "Highlighter.h"
 #include "codeeditor.h"
 
+#include "svgview.h"
+
 class MyQSlider;
 
 struct Err
@@ -85,6 +87,10 @@ public slots:
     void search();
 
 private:
+
+    SvgView * w_svg;
+    //QSvgWidget * w_svg;
+
     std::vector<std::vector<double>> loadCSV(QString filename);
     bool plot(QPainter &painter, QPainterPath &path, QRectF area, double scaleX, double scaleY, QString filename, int idX, int idY);
 
@@ -103,7 +109,7 @@ private:
 
     CodeEditor * te_script;
     QTextEdit * te_console;
-    QSvgWidget * w_svg;
+
 
     Err process(QStringList content);
 

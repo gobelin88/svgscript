@@ -9,7 +9,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    version=QString("v5.0");
+    w_svg=new SvgView();
+    //w_svg=new QSvgWidget();
+
+    version=QString("v6.0");
 
     pe=nullptr;
 
@@ -22,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     highlighter_console=new Highlighter(te_console->document());
 
     scroll=new QScrollArea();
-    w_svg=new QSvgWidget();
+
     pb_load=new QPushButton("Load",this);
     pb_save=new QPushButton("Save",this);
     pb_run=new QPushButton("Run (F1)",this);
