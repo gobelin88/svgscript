@@ -1,0 +1,115 @@
+DEFINE D 150;//Diametre de la sphere circonscrite
+DEFINE P (1+Math.sqrt(5))/2;//Nombre d'or
+DEFINE A D/(Math.sqrt(2+P));//Coté 
+DEFINE Theta Math.acos(-1/Math.sqrt(5)); //Angle dièdre
+DEFINE ra A/(2*Math.sin($pi/3));  //Rayon circonscrit
+DEFINE ap A/(2*Math.tan($pi/3));//Apothème (Rayon inscrit)
+
+
+DEFINE marge 1;
+
+DEFINE X marge+A/2;
+DEFINE Y ap+marge;
+
+DEFINE W 3;
+DEFINE dL 6;
+
+DEFINE Ratio 1;
+DISP Ratio;
+
+DEFINE Delta 5;
+
+
+//--------------------------------------------------------------------------
+
+SVG_BEGIN 1024 1024;
+
+//00_cube
+//01_dodecaedre
+//02_icosaedre
+//03_geosphere
+
+
+PROJECT_OBJECT_MAP 
+./rc/icosaedre.obj 
+./rc/watermask.00004.png 
+512
+D/3.80423
+1 20 20
+0 0 -36
+2.5 0 3
+W dL Delta
+marge;
+
+DISP D/3.80423;
+
+SVG_PEN 0 255 0 0.5 Solid;
+DRAW_POLYGON X Y ra 3 90;
+
+//COINS--------------------------------------------------------------------------------------
+DEFINE X 30;
+DEFINE Y 320;
+
+DEFINE N 5;
+DEFINE a A/3;
+DEFINE r a/(2*Math.sin($pi/N));
+DEFINE h r*Math.cos($pi/N);
+
+DEFINE Pyr Math.sqrt((5-Math.sqrt(5))/10)*a;
+
+DRAW_POLYGON X Y r N 0;
+
+//
+DEFINE s 5;
+DEFINE p 1;
+//Marge d'ajustement
+DEFINE mw 0.10;
+DEFINE ml 0.05;
+
+
+DEFINE K 0;
+LABEL K;
+TRANSFORM_ROTATE X Y 360/N*K;
+DRAW_RECT X-h/2-dL/2-s/2-p+ml/2 Y-W/2+mw/2 dL+s-ml W-mw;
+TRANSFORM_ROTATE X Y -360/N*K;
+GOTO K N;
+
+
+DEFINE Ux h;
+DEFINE Uy -Pyr;
+DEFINE Nu Math.sqrt(Ux*Ux+Uy*Uy);
+DEFINE Ux Ux/Nu;
+DEFINE Uy Uy/Nu;
+
+SVG_PEN 0 255 0 0.4 Solid;
+DRAW_PATH_R 
+M X+2*r+10 Y
+L -(h/2-dL/2) 0
+L 0 W
+L -dL 0
+L 0 -W
+L -(h/2-dL/2) 0
+L 0 -Pyr
+L Delta*Ux -Delta*Uy
+L -W*Uy -W*Ux
+L dL*Ux -dL*Uy
+L W*Uy W*Ux
+L Ux*(Nu-dL-Delta) -Uy*(Nu-dL-Delta);
+
+DEFINE Nw W*Math.sqrt(1+(Uy*Uy)/(Ux*Ux));
+
+DEFINE dHy -Pyr-Uy/Ux*W;
+DEFINE dHx -(h-W*2)-W;
+DEFINE dHn Math.sqrt(dHx*dHx+dHy*dHy);
+
+SVG_PEN 255 0 0 0.4 Solid;
+DRAW_PATH_R
+M X+2*r+10 Y
+L -W+p 0
+Lc dHx+W-p 0 W dL+s 0 3
+L 0 dHy
+Lc Ux*(dHn-dL-Delta) -Uy*(dHn-dL-Delta) W dL 0 3
+L Ux*(dL+Delta) -Uy*(dL+Delta);
+
+
+SVG_END;

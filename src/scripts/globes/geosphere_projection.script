@@ -1,0 +1,42 @@
+DEFINE D 150;//Diametre de la sphere circonscrite
+DEFINE P (1+Math.sqrt(5))/2;//Nombre d'or
+DEFINE A D/(P*Math.sqrt(3));//Coté 
+DEFINE Theta Math.acos(-1/Math.sqrt(5)); //Angle dièdre
+DEFINE ra A/(2*Math.sin($pi/5));  //Rayon circonscrit
+DEFINE ap A/(2*Math.tan($pi/5));//Apothème (Rayon inscrit)
+
+DEFINE marge 1;
+
+DEFINE X marge+A/2;
+DEFINE Y ap+marge;
+
+DEFINE W 3;
+DEFINE dL 6;
+
+DEFINE Ratio 1;
+
+DEFINE Delta 5;
+
+
+//--------------------------------------------------------------------------
+
+SVG_BEGIN 1024 1024;
+
+//00_cube
+//01_dodecaedre
+//02_icosaedre
+//03_geosphere
+
+
+PROJECT_OBJECT_MAP 
+./rc/geosphere.obj 
+./rc/watermask.00004.png 
+512
+D/2
+1 20 20
+90 0 0
+2.5 54 55
+W dL Delta
+marge;
+
+SVG_END;

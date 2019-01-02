@@ -1,0 +1,323 @@
+DEFINE W 3;
+DEFINE dL 6;
+
+DEFINE D 150;//Diametre de la sphere circonscrite
+DEFINE dm 3;
+DEFINE P (1+Math.sqrt(5))/2;//Nombre d'or
+DEFINE A D/Math.sqrt(2+P);//Coté 
+DEFINE Ri A/6*Math.sqrt(3)*(1+P);//Rayon de la sphere inscrite
+SLIDE t 0 0 180;//Rotation du globe
+
+DEFINE margeD 6;//Marge sur le diamètre de la sphere
+DEFINE Obliquite 23;//Obiquité
+DEFINE gD D+margeD;//Gimbale Diamètre interne
+DEFINE gT 26;//Gimbale Angle
+DEFINE gE 20;//Gimbale Epaisseur
+DEFINE sR D*4/15;//Rayon socle
+
+DEFINE E_aimant 2.8;//Epaisseur aimant
+DEFINE D_aimant 5.8;//Diametre aimant
+DEFINE M_aimant 3.7;//Marge entre le globe et le kikouillou
+DEFINE Sp 10;//Epaisseur K
+DEFINE Lp (D/2-Ri+margeD+gE/2-Sp/2-W/2-M_aimant);//Longueur K
+DEFINE Lpp (Sp+W*3);//Longueur Base Kikouillou
+
+DEFINE mw 0.10;//Marge d'ajustement
+DEFINE ml 0.05;//Marge d'ajustement
+
+DEFINE X 100;
+DEFINE Y 133;
+
+SVG_BEGIN 512 512;
+
+/////////////////////////////////////////////////////////////////////GLOBE
+SVG_PEN 0 0 0 0.5 Solid;
+/*PROJECT_OBJECT
+./rc/geosphere.obj 
+X Y
+90 0 t
+(D-dm)/2
+2;*/
+/////////////////////////////////////////////////////////////////////GIMBALE
+SVG_PEN 255 0 0 0.5 Solid;
+
+//Le C ARM------------------------------------------------------------------
+DRAW_PATH
+M X-gD/2*Math.sin(gT/2*$pi/180) Y+gD/2*Math.cos(gT/2*$pi/180)
+C X Y gD/2 270-gT/2 180+gT
+C X Y gD/2+gE 90+gT/2 -180-gT
+L X-gD/2*Math.sin(gT/2*$pi/180) Y+gD/2*Math.cos(gT/2*$pi/180);
+
+//Les trous du C Arm-------------------------------------------------------
+DEFINE K 0;
+LABEL K;
+TRANSFORM_ROTATE X Y -90+K*45;
+DRAW_RECT X-W/2+gD/2+gE/2+mw/2 Y-dL/2+dL+ml/2 W-mw dL-ml;
+DRAW_RECT X-W/2+gD/2+gE/2+mw/2 Y-dL/2-dL+ml/2 W-mw dL-ml;
+TRANSFORM_ROTATE X Y 90-K*45;
+GOTO K 5;
+
+//Le pied----------------------------------------------------------------------
+TRANSFORM_ROTATE X Y -Obliquite;
+DRAW_PATH_R 
+M X+sR Y+gD/2+sR+gE/2
+Lc -sR*2 0 W dL*1.5 3 3
+C sR 0 sR 180 -180;
+TRANSFORM_ROTATE X Y Obliquite;
+
+SVG_PEN 255 0 0 0.5 Solid;
+DRAW_CIRCLE X Y sR+10;
+DRAW_RECT_CRENEAUX 
+X-2.5*dL+W Y-2*dL
+5*dL-2*W 4*dL
+W-mw dL*1.5 
+0 3 0 3
+-1 7 -1 7;
+
+DEFINE M 0;
+LABEL M;
+TRANSFORM_ROTATE X Y M*45;
+DRAW_RECT X-dL/2+sR+ml/2 Y-W/2+mw/2 dL-ml W-mw;
+TRANSFORM_ROTATE X Y -M*45;
+GOTO M 8;
+
+//Les pattes du globe-------------------------------------------------------
+DEFINE Rleg 10;
+SVG_PEN 0 0 255 0.5 Solid;
+DRAW_PATH_R
+M X Y
+L sR-dL 0
+Lc 2*dL 0 W dL 0 3
+L 10-dL 0
+C 0 Rleg Rleg 90 -90
+L Rleg/2+2.5 0
+L 0 W
+L -Rleg/2 0
+L 0 -W
+L -(sR+10)+W/2-2.5 0
+L 0 -Rleg/2
+L -W 0
+L 0 Rleg/2
+L -(sR+10)+W/2-2.5 0
+L 0 W
+L -Rleg/2 0
+L 0 -W
+C Rleg/2+2.5 0 Rleg 180 -90
+L 10-dL -Rleg
+Lc 2*dL 0 W dL 0 3
+L sR-dL 0;
+
+DRAW_PATH_R
+M X+W/2 Y+Rleg*2
+L sR-dL-W/2 0
+Lc 2*dL 0 W dL 0 3
+L 10-dL 0
+C 0 Rleg Rleg 90 -90
+L Rleg/2+2.5 0
+L 0 W
+L -Rleg/2 0
+L 0 -W
+L -(sR+10)*2-5 0
+L 0 W
+L -Rleg/2 0
+L 0 -W
+C Rleg/2+2.5 0 Rleg 180 -90
+L 10-dL -Rleg
+Lc 2*dL 0 W dL 0 3
+L sR-dL-W/2 0
+L 0 Rleg/2
+L W 0
+L 0 -Rleg/2;
+
+DRAW_PATH_R
+M X+W Y-Rleg*2
+Lc 2*dL 0 W dL 0 3
+L 10-dL 0
+C 0 Rleg Rleg 90 -90
+L Rleg/2+2.5 0
+L 0 W
+L -Rleg/2 0
+L 0 -W
+L -2*dL-(10-dL)-2.5 0
+L 0 -Rleg;
+
+SVG_PEN 255 0 0 0.5 Solid;
+DRAW_CIRCLE X Y sR+10+Rleg;
+
+DEFINE N 0;
+LABEL N;
+TRANSFORM_ROTATE X Y N*45;
+DRAW_RECT X+sR+12.5+ml/2 Y-W/2+mw/2 Rleg/2-ml W-mw;
+TRANSFORM_ROTATE X Y -N*45;
+GOTO N 8;
+
+//Les Kikouilloux--------------------------------------------------------------
+SVG_PEN 0 0 255 0.5 Solid;
+DEFINE Wr 0.3;
+
+DRAW_PATH_R
+M X-Lpp/2 Y-gD/2-gE/2-W/2
+Lc Lpp 0 W Lpp 0 5
+L -(W-Wr) 0
+L 0 W 
+L Wr/2 0
+L -(Wr+Wr/2) Lp-W
+C -Sp/2 0 Sp/2 0 -90
+L -W Sp/2
+C 0 -Sp/2 Sp/2 270 -90
+L -(Sp/2+Wr+Wr/2) -Lp+W
+L Wr/2 0
+L 0 -W
+L -(W-Wr) 0;
+DRAW_RECT X-Lpp/2-W/2+Lpp/2 Y-gD/2-gE/2-W/2-W*2
+W Lp/2+W*2;
+
+DRAW_RECT 
+X-D_aimant/2 Y-gD/2-gE/2-W/2+Lp+Sp/2-E_aimant
+D_aimant E_aimant;
+DRAW_RECT 
+X-D_aimant/2 Y-gD/2-gE/2-W/2+Lp+Sp/2+M_aimant-3
+D_aimant E_aimant;
+
+
+DRAW_PATH_R
+M X-Lpp/2-50 Y-gD/2-gE/2-W/2
+Lc Lpp 0 W Lpp 0 5
+L -(W-Wr) 0
+L 0 W 
+L Wr/2 0
+L -(Wr+Wr/2) Lp-W
+C -Sp/2 0 Sp/2 0 -90
+L -W Sp/2
+C 0 -Sp/2 Sp/2 270 -90
+L -(Sp/2+Wr+Wr/2) -Lp+W
+L Wr/2 0
+L 0 -W
+L -(W-Wr) 0;
+DRAW_RECT X-Lpp/2-W/2+Lpp/2-50 Y-gD/2-gE/2-W/2+Lp/2
+W Lp/2+W;
+
+DRAW_RECT 
+X-D_aimant/2-50 Y-gD/2-gE/2-W/2+Lp+Sp/2-E_aimant
+D_aimant E_aimant;
+
+//P!aques inter ----------------------------------------------------------------
+DEFINE delta D/2+margeD+gE;
+DEFINE J 0;
+LABEL J;
+TRANSFORM_ROTATE X Y -90+45*J;
+DRAW_RECT_CRENEAUX 
+X+delta Y-2*dL
+5*dL 4*dL
+W dL 
+0 1 0 1
+0 3 0 3;
+TRANSFORM_ROTATE X Y 90-45*J;
+GOTO J 5;
+
+DRAW_CIRCLE X Y+delta+2.5*dL D_aimant/2+0.5;
+DRAW_CIRCLE X Y-delta-2.5*dL D_aimant/2+0.5; 
+DRAW_CROSS X Y+delta+2.5*dL W-mw Lpp-W*2; 
+DRAW_CROSS X Y-delta-2.5*dL W-mw Lpp-W*2; 
+
+DRAW_CIRCLE X-5*dL Y+delta+2.5*dL 2*dL-0.5; 
+DRAW_CROSS X-5*dL Y+delta+2.5*dL W-mw Lpp; 
+
+DRAW_CIRCLE X-5*dL Y-delta-2.5*dL 2*dL-0.5; 
+DRAW_CROSS X-5*dL Y-delta-2.5*dL W-mw Lpp; 
+
+
+//Marquage Verif --------------------------------------------------------------
+SVG_PEN 0 128 0 0.5 Dot;
+//DRAW_CIRCLE X Y (D-dm)/2;
+//DRAW_CIRCLE X Y Ri;
+
+//SKELETTE--------------------------------------------------------------------------------------
+
+SVG_PEN 0 128 0 0.5 Solid;
+
+
+DEFINE Id 1;
+DEFINE step $pi/8;
+DEFINE Norm Math.sqrt(2-2*Math.cos(step));
+DEFINE N Norm*(D-dm)/2;
+DEFINE Re (D-dm)/2;
+
+
+LABEL Id;
+DEFINE alpha step*Id;
+DEFINE Ux (Math.sin(alpha+step)-Math.sin(alpha))/Norm;
+DEFINE Uy (Math.cos(alpha+step)-Math.cos(alpha))/Norm;
+
+DEFINE Wr 0.3;
+DRAW_PATH_R
+M X+Re*Math.sin(alpha) Y+Re*Math.cos(alpha) 
+L -Uy*(W) Ux*(W)
+L Ux*(dL/2+Wr) Uy*(dL/2+Wr)
+L Uy*(W) -Ux*(W)
+L Ux*(N-dL-2*Wr) Uy*(N-dL-2*Wr)
+L -Uy*W Ux*W
+L Ux*(dL/2+Wr) Uy*(dL/2+Wr)
+L Uy*(W) -Ux*(W);
+GOTO Id 7;
+
+DEFINE Rd sR+10+Rleg;
+
+DEFINE dW (Re-Rd)/2-1;
+DEFINE dS 12;
+DRAW_PATH
+M X+Re*Math.sin(step) Y+Re*Math.cos(step)
+L X+Re*Math.sin(step) Y+Re*Math.cos(step)+W
+L X+Re*Math.sin(step)-(dL/2+Wr) Y+Re*Math.cos(step)+W
+L X+Re*Math.sin(step)-(dL/2+Wr) Y+Re*Math.cos(step)
+L X+Re*Math.sin(step)-(dL/2+Wr)-dS Y+Re*Math.cos(step)
+L X+Re*Math.sin(step)-(dL/2+Wr)-dS Y+Re*Math.cos(step)-4+W/2
+L X+Re*Math.sin(step)-(dL/2+Wr)-dS+dW Y+Re*Math.cos(step)-4+W/2-Wr/2
+L X+Re*Math.sin(step)-(dL/2+Wr)-dS+dW Y+Re*Math.cos(step)-4-W/2+Wr/2
+L X+Re*Math.sin(step)-(dL/2+Wr)-dS Y+Re*Math.cos(step)-4-W/2
+L X+Re*Math.sin(step)-(dL/2+Wr)-dS Y+Re*Math.cos(step)-8
+C X Y Rd step*$todeg-90 6*step*$todeg
+L X+Re*Math.sin(step*7)-(dL/2+Wr)-dS Y+Re*Math.cos(step*7)+8
+L X+Re*Math.sin(step*7)-(dL/2+Wr)-dS Y+Re*Math.cos(step*7)+4+W/2
+L X+Re*Math.sin(step*7)-(dL/2+Wr)-dS+dW Y+Re*Math.cos(step*7)+4+W/2-Wr/2
+L X+Re*Math.sin(step*7)-(dL/2+Wr)-dS+dW Y+Re*Math.cos(step*7)+4-W/2+Wr/2
+L X+Re*Math.sin(step*7)-(dL/2+Wr)-dS Y+Re*Math.cos(step*7)+4-W/2
+L X+Re*Math.sin(step*7)-(dL/2+Wr)-dS Y+Re*Math.cos(step*7)
+L X+Re*Math.sin(step*7)-(dL/2+Wr) Y+Re*Math.cos(step*7)
+L X+Re*Math.sin(step*7)-(dL/2+Wr) Y+Re*Math.cos(step*7)-W
+L X+Re*Math.sin(step*7) Y+Re*Math.cos(step*7)-W
+L X+Re*Math.sin(step*7) Y+Re*Math.cos(step*7);
+
+DRAW_RECT X+Rd-dW Y-W/2 2*dW W;
+
+DEFINE X X+185;
+DEFINE Rf (Re*Math.sin(step*7)-(dL/2+Wr)-dS);
+
+DRAW_CIRCLE X Y Rf+dW*2;//+2*W
+DRAW_CIRCLE X Y Rd;//+2*W
+DRAW_CIRCLE X Y Rd+2*dW;//+2*W
+
+DEFINE Idd 0;
+LABEL Idd;
+TRANSFORM_ROTATE X Y Idd*36;
+
+DRAW_PATH_R
+M X-(W-Wr)/2 Y+Rf+dW
+L W-Wr 0
+L Wr/2 2*dW
+L -W 0
+L Wr/2 -2*dW;
+
+DRAW_PATH_R
+M X-(W-Wr)/2 Y+Rd+dW
+L W-Wr 0
+L Wr/2 2*dW
+L -W 0
+L Wr/2 -2*dW;
+
+
+TRANSFORM_ROTATE X Y -Idd*36;
+GOTO Idd 10;
+
+
+SVG_END;
