@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 41
+#define NB_CMD 42
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -54,6 +54,7 @@ static const Command CommandsList[NB_CMD]={
     Command("DRAW_GEAR_S",          QObject::tr("x y m n daxe nb_spokes :\n\n Dessine un pignon type spikes")),
     Command("DRAW_PENDULE",         QObject::tr("x y P Theta0 daxe1 daxe2: (P)Periode (daxe1-2)Diamètres des trous (Theta0)Angle du lancer pour la correction de la période... \n\n")),
     Command("DRAW_CROSS",           QObject::tr("x y w L :\n\n Dessine une croix centrée en (x,y) d'epaiseur (w) et le largeur/longueur (L)\n\n")),
+    Command("DRAW_CLIP",            QObject::tr("x1 y1 x2 y2 w dL mode:\n\n Dessine un clip \n\n")),
 
     Command("IMG_LOAD"           ,  QObject::tr("x y w h filename:\n\n Dessine une image (filename) dans un rectangle (x,t,w,h).") ),
     Command("IMG_PIXEL"          ,  QObject::tr("x y w h filename dx,dy:\n\n Dessine une image (filename) dans un rectangle (x,t,w,h) en la pixelisant (dx,dy).") ),

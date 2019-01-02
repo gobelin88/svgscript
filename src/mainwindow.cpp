@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    version=QString("v4.0");
+    version=QString("v5.0");
 
     pe=nullptr;
 
@@ -26,6 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     pb_load=new QPushButton("Load",this);
     pb_save=new QPushButton("Save",this);
     pb_run=new QPushButton("Run (F1)",this);
+    pb_search=new QPushButton("Search",this);
+    pb_search->setShortcut(tr("Ctrl+F"));
     pb_save->setShortcut(tr("Ctrl+Shift+S"));
     pb_load->setShortcut(tr("Ctrl+O"));
     pb_run->setShortcut(tr("F1"));
@@ -41,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     l_pb->addWidget(pb_load);
     l_pb->addWidget(pb_save);
     l_pb->addWidget(pb_run );
+    l_pb->addWidget(pb_search);
 
     slider_layout=new QVBoxLayout();
 
@@ -70,6 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(a_direct_save,SIGNAL(triggered()),this,SLOT(slot_direct_save()));
     connect(te_script,SIGNAL(textChanged()),this,SLOT(slot_modified()));
+
+    connect(pb_search,SIGNAL(clicked()),this,SLOT(search()));
 
     loadStyle(":/qss_script/rc/style.txt");
 }
@@ -453,12 +458,10 @@ void MainWindow::draw_ellipseCreneaux(
 
 void clip(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
 {
-    double ra=0.3, rb=1.2;
+    double ra=0.32, rb=1.2;
     double dr=2,m=ra;
 
-    cp+=v*E;pts.lineTo(cp);
-
-    cp-=u*ra;pts.lineTo(cp);
+    cp+=v*E-u*ra;pts.lineTo(cp);
     cp+=v*rb+u*ra;pts.lineTo(cp);
 
     cp+=u*dr;pts.lineTo(cp);
@@ -470,19 +473,15 @@ void clip(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,do
     cp+=u*dr;pts.lineTo(cp);
 
     cp-=v*rb-u*ra;pts.lineTo(cp);
-    cp-=u*ra;pts.lineTo(cp);
-
-    cp-=v*E;pts.lineTo(cp);
+    cp-=v*E+u*ra;pts.lineTo(cp);
 }
 
 void clipb(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
 {
-    double ra=0.3, rb=1.2;
+    double ra=0.32, rb=1.2;
     double dr=2,m=ra;
 
-    cp+=v*E;pts.lineTo(cp);
-
-    cp-=u*ra;pts.lineTo(cp);
+    cp+=v*E-u*ra;pts.lineTo(cp);
     cp+=v*rb+u*ra;pts.lineTo(cp);
 
     cp+=u*dr;pts.lineTo(cp);
@@ -492,9 +491,7 @@ void clipb(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,d
     cp+=u*dr;pts.lineTo(cp);
 
     cp-=v*rb-u*ra;pts.lineTo(cp);
-    cp-=u*ra;pts.lineTo(cp);
-
-    cp-=v*E;pts.lineTo(cp);
+    cp-=v*E+u*ra;pts.lineTo(cp);
 }
 
 void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double E,double dL,int n,int mode,double offset)
@@ -1800,6 +1797,14 @@ Err MainWindow::process(QStringList content)
                         P=P+QPointF(exp(args[k+1]),exp(args[k+2]));
                         k+=7;
                     }
+                    else if(args[k]=="Cl" && (k+5)<args.size())
+                    {
+                        P=P+QPointF(exp(args[k+1]),exp(args[k+2]));
+
+                        //Todo
+
+                        k+=6;
+                    }
                     else if(args[k]=="C" && (k+5)<args.size())
                     {
                         P=P+QPointF(exp(args[k+1]),exp(args[k+2]));
@@ -2025,6 +2030,35 @@ Err MainWindow::process(QStringList content)
                                       exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),exp(args[9]));
                 }
 
+                painter.drawPath(transform.map(path));
+            }
+            else if(args.size()==7 && args[0]==QString("DRAW_CLIP"))
+            {
+                QPainterPath path;
+
+                double x1=exp(args[1]);
+                double y1=exp(args[2]);
+                double x2=exp(args[3]);
+                double y2=exp(args[4]);
+                QLineF line(QPointF(x1,y1),QPointF(x2,y2));
+                double E=exp(args[5]);
+                double dL=line.length();
+                int mode=exp(args[6]);
+
+                QPointF u(line.dx()/dL,line.dy()/dL);
+                QPointF v(u.y(),-u.x());
+
+                QPointF cp(x1,y1);
+                if(mode==0)
+                {
+                    path.moveTo(cp);
+                    clip(path,cp,u,v,E,dL);
+                }
+                else if(mode==1)
+                {
+                    path.moveTo(cp);
+                    clipb(path,cp,u,v,E,dL);
+                }
                 painter.drawPath(transform.map(path));
             }
             else if(args.size()==15 && args[0]==QString("DRAW_RECT_CRENEAUX"))//Ok
@@ -2267,7 +2301,7 @@ Err MainWindow::process(QStringList content)
             {
                 QPainterPath path;
                 bool ok=calcProjection(path,
-                               args[1],
+                                       args[1],
                         QPointF(exp(args[2]),exp(args[3])),
                         Vector3d(exp(args[4]),exp(args[5]),exp(args[6])),
                         exp(args[7]),exp(args[8]));
@@ -2432,4 +2466,51 @@ bool MainWindow::plot(QPainter & painter,QPainterPath & path,QRectF area, double
     path.addText(getScaled( QPointF(minX+deltaX,minY+deltaY)  ,area,scale) ,painter.font(), QString(".%1").arg(minY+deltaY) );
 
     return true;
+}
+
+void MainWindow::search()
+{
+    te_script->setPlainText(QString(te_script->toPlainText()));
+
+    QString searchString = te_console->toPlainText();
+    QTextDocument *document = te_script->document();
+
+
+
+    bool found = false;
+
+    if (searchString.isEmpty())
+    {
+        te_console->append("The search field is empty...");
+    }
+    else
+    {
+
+        QTextCursor highlightCursor(document);
+        QTextCursor cursor(document);
+
+        cursor.beginEditBlock();
+
+        QTextCharFormat plainFormat(highlightCursor.charFormat());
+        QTextCharFormat colorFormat = plainFormat;
+        colorFormat.setForeground(Qt::red);
+
+        while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
+            highlightCursor = document->find(searchString, highlightCursor, QTextDocument::FindWholeWords);
+
+            if (!highlightCursor.isNull()) {
+                found = true;
+                highlightCursor.movePosition(QTextCursor::WordRight,
+                                             QTextCursor::KeepAnchor);
+                highlightCursor.mergeCharFormat(colorFormat);
+            }
+        }
+
+        cursor.endEditBlock();
+
+        if (found == false)
+        {
+            te_console->append("Sorry, the word cannot be found...");
+        }
+    }
 }

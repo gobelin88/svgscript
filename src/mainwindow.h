@@ -82,6 +82,8 @@ public slots:
     void removeSliders();
     void initSliders();
 
+    void search();
+
 private:
     std::vector<std::vector<double>> loadCSV(QString filename);
     bool plot(QPainter &painter, QPainterPath &path, QRectF area, double scaleX, double scaleY, QString filename, int idX, int idY);
@@ -96,6 +98,7 @@ private:
     QPushButton * pb_load;
     QPushButton * pb_save;
     QPushButton * pb_run;
+    QPushButton * pb_search;
     QAction * a_direct_save;
 
     CodeEditor * te_script;
