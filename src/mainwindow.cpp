@@ -18,8 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
     te_script=new CodeEditor();
     te_console=new QTextEdit();
 
-    highlighter=new Highlighter(te_script->document());
-    highlighter=new Highlighter(te_console->document());
+    highlighter_script=new Highlighter(te_script->document());
+    highlighter_console=new Highlighter(te_console->document());
 
     scroll=new QScrollArea();
     w_svg=new QSvgWidget();
@@ -2470,47 +2470,18 @@ bool MainWindow::plot(QPainter & painter,QPainterPath & path,QRectF area, double
 
 void MainWindow::search()
 {
-    te_script->setPlainText(QString(te_script->toPlainText()));
+    highlighter_script->clearSubRules();
 
-    QString searchString = te_console->toPlainText();
-    QTextDocument *document = te_script->document();
+    QStringList searchString = te_console->toPlainText().split("\n",QString::SkipEmptyParts);
 
+    QTextCharFormat keywordFormat;
+    keywordFormat.setForeground(Qt::red);
+    keywordFormat.setFontWeight(QFont::Bold);
 
-
-    bool found = false;
-
-    if (searchString.isEmpty())
+    for(int k=0;k<searchString.size();k++)
     {
-        te_console->append("The search field is empty...");
+        highlighter_script->addSubRule(QString("\\b%1\\b").arg(searchString[k]),keywordFormat);
     }
-    else
-    {
 
-        QTextCursor highlightCursor(document);
-        QTextCursor cursor(document);
-
-        cursor.beginEditBlock();
-
-        QTextCharFormat plainFormat(highlightCursor.charFormat());
-        QTextCharFormat colorFormat = plainFormat;
-        colorFormat.setForeground(Qt::red);
-
-        while (!highlightCursor.isNull() && !highlightCursor.atEnd()) {
-            highlightCursor = document->find(searchString, highlightCursor, QTextDocument::FindWholeWords);
-
-            if (!highlightCursor.isNull()) {
-                found = true;
-                highlightCursor.movePosition(QTextCursor::WordRight,
-                                             QTextCursor::KeepAnchor);
-                highlightCursor.mergeCharFormat(colorFormat);
-            }
-        }
-
-        cursor.endEditBlock();
-
-        if (found == false)
-        {
-            te_console->append("Sorry, the word cannot be found...");
-        }
-    }
+    highlighter_script->rehighlight();
 }

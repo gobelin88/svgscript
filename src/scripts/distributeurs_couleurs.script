@@ -1,0 +1,183 @@
+
+SLIDE alpha 65 60 75;
+SLIDE rot 0 0 360;
+
+DEFINE Dr 13;//Diametre roulement
+DEFINE L 75;//Hauteur flacon Sous bouchon
+DEFINE Lb 20;//Hauteur flacon bouchon
+
+DEFINE R 65;//Rayon du distributeur
+DEFINE r 15.1;//Rayon des flacons
+
+DEFINE W 5;//Epaisseur materiau
+DEFINE dL W;//Taille des crans
+DEFINE N 10;//Nombre de slot attention disposition dependant !!!
+
+DEFINE X 100;//Position centrale
+DEFINE Y 100;
+
+SVG_BEGIN 512 512;
+
+SVG_PEN 0 0 0 1 Solid;
+
+DEFINE N Math.round(N);
+
+//Dessin des trous ---------------------------------------------------------------------------------
+
+TRANSFORM_ROTATE X Y rot;
+DEFINE Re R+r+W;
+DEFINE He Re*Math.cos($pi/N);
+
+DEFINE K 0;
+LABEL K;
+DEFINE ang K*360/N;
+DRAW_CIRCLE X+R*Math.cos(ang*$torad) Y+R*Math.sin(ang*$torad) r; 
+DRAW_CIRCLE X+R*Math.cos(ang*$torad) Y+R*Math.sin(ang*$torad) 2; 
+TRANSFORM_ROTATE X Y K*360/N;
+DRAW_RECT X-W/2 Y-He+3*W W dL;
+TRANSFORM_ROTATE X Y -K*360/N;
+
+GOTO K N;
+DRAW_CIRCLE_CRENEAUX X Y Re W W N 2;
+TRANSFORM_ROTATE X Y -rot;
+
+DRAW_CIRCLE X Y 2;
+//------------------------------------------------------------------------------------------------------
+
+SVG_PEN 255 0 0 1 Solid;
+
+DRAW_CIRCLE X Y Dr/2;
+
+
+DEFINE dX Re*Math.cos(alpha*$torad);
+DEFINE dY Re*Math.sin(alpha*$torad)+W;
+DRAW_LINE
+X+dX  Y-dY
+X+dX Y+dY;
+
+DEFINE U (Dr/2+W*3);
+DRAW_PATH_R
+M X Y-U
+C 0 U U 90 180
+L 0 U
+Lc dX 0 W dL -1 1
+Lc 0 -2*U W dL -1 2
+Lc -dX 0 W dL -1 1;
+
+//---------------------------------------------------------------------------------
+DRAW_PATH_R
+M X Y+U+2*W
+Lc dX 0 W dL -1 1
+Lc 0 15 W dL -1 1
+L -dX -15;
+
+DRAW_PATH_R
+M X Y-U-2*W
+Lc dX 0 W dL -1 2
+Lc 0 -15 W dL -1 2
+L -dX 15;
+
+//---------------------------------------------------------------------------------
+SVG_PEN 0 0 128 1 Solid;
+DEFINE X X+Re+50;
+DRAW_RECT
+X-Lb/2  Y-dY
+L+Lb dY*2;
+
+DRAW_RECT_CRENEAUX
+X-20-Lb  Y-dY-10
+L+40+2*Lb dY*2+20
+W dL*2
+-1 -1 -1 -1
+1 0 1 0;
+
+DRAW_PATH_R
+M X-20-Lb+L+40+2*Lb+W Y-dY-10
+Lc 0 L+40+2*Lb W dL*2 -1 1
+L 100 0
+L -90 -(L+40+2*Lb)
+L -10 0;
+
+DISP L+40+2*Lb;
+DISP dY*2+20;
+
+DRAW_LINE_CRENEAUX
+X-W-Lb/2 Y+U
+X-W-Lb/2 Y+U-2*U W dL -1 4;
+
+DRAW_LINE_CRENEAUX
+X-W*2-Lb/2 Y+U-2*U 
+X-W*2-15-Lb/2 Y+U-2*U 
+W dL -1 4;
+
+DRAW_LINE_CRENEAUX
+X-W*2-15-Lb/2 Y+U
+X-W*2-Lb/2 Y+U 
+W dL -1 4;
+
+DRAW_LINE_CRENEAUX
+X+W+L+Lb/2 Y+U-2*U
+X+W+L+Lb/2 Y+U W dL -1 4;
+
+DRAW_LINE_CRENEAUX
+X+W*2+L+Lb/2+15 Y+U-2*U 
+X+W*2+L+Lb/2 Y+U-2*U 
+W dL -1 4;
+
+DRAW_LINE_CRENEAUX
+X+W*2+L+Lb/2 Y+U
+X+W*2+L+15+Lb/2 Y+U 
+W dL -1 4;
+
+//----------------------------------------------------------------------------------------------------
+//Flacon
+SVG_PEN 0 64 0 0.5 Dash;
+
+DRAW_RECT
+X-Lb/2  Y-r
+L 2*r;
+
+DRAW_RECT
+X-Lb/2+L  Y-r
+Lb 2*r;
+
+//----------------------------------------------------------------------------------------------------
+SVG_PEN 0 0 0 1 Solid;
+DEFINE X X-Re*2-50;
+DEFINE Y Y+Re+20;
+
+DEFINE J 0;
+LABEL J;
+DRAW_PATH_R
+M X+J*4*W Y+L
+L dL 0
+L 0 -W
+L 2*W 0
+L 0 W
+L dL 0
+L 0 -L
+L -W 0
+L 0 W
+L -2*W 0
+L 0 -W
+L -W 0;
+DRAW_LINE 
+X+J*4*W Y+L
+X+J*4*W Y;
+
+GOTO J N;
+
+//Flacon
+SVG_PEN 0 64 0 0.5 Dash;
+
+DRAW_RECT
+ X+J*4*W+W Y
+2*r L;
+
+DRAW_RECT
+ X+J*4*W+W Y+L
+2*r Lb;
+
+//
+
+SVG_END;

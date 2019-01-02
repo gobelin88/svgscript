@@ -114,7 +114,9 @@ private:
 
     QScriptEngine * pe;
 
-    Highlighter * highlighter;
+    Highlighter * highlighter_script;
+    Highlighter * highlighter_console;
+
 
     QString comment(QString content);
 

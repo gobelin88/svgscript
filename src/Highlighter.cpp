@@ -5,6 +5,8 @@ Highlighter::Highlighter(QTextDocument *parent)
 {
     HighlightingRule rule;
 
+    clearSubRules();
+
     keywordFormat.setForeground(Qt::green);
     keywordFormat.setFontWeight(QFont::Bold);
     QStringList keywordPatterns;
@@ -68,6 +70,15 @@ void Highlighter::highlightBlock(const QString &text)
             setFormat(match.capturedStart(), match.capturedLength(), rule.format);
         }
     }
+
+    foreach (const HighlightingRule &rule, subhighlightingRules) {
+        QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
+        while (matchIterator.hasNext()) {
+            QRegularExpressionMatch match = matchIterator.next();
+            setFormat(match.capturedStart(), match.capturedLength(), rule.format);
+        }
+    }
+
     setCurrentBlockState(0);
 
     int startIndex = 0;

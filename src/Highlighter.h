@@ -70,6 +70,7 @@ static const Command CommandsList[NB_CMD]={
 
 class QTextDocument;
 
+
 class Highlighter : public QSyntaxHighlighter
 {
     Q_OBJECT
@@ -77,8 +78,22 @@ class Highlighter : public QSyntaxHighlighter
 public:
     Highlighter(QTextDocument *parent = 0);
 
+    void addSubRule(QString pattern,QTextCharFormat format)
+    {
+        HighlightingRule rule;
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = format;
+        subhighlightingRules.append(rule);
+    }
+
+    void clearSubRules()
+    {
+        subhighlightingRules.clear();
+    }
+
 protected:
     void highlightBlock(const QString &text) override;
+
 
 private:
     struct HighlightingRule
@@ -86,7 +101,8 @@ private:
         QRegularExpression pattern;
         QTextCharFormat format;
     };
-    QVector<HighlightingRule> highlightingRules;
+
+    QVector<HighlightingRule> highlightingRules,subhighlightingRules;
 
     QRegularExpression commentStartExpression;
     QRegularExpression commentEndExpression;
