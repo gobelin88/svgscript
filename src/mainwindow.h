@@ -99,8 +99,6 @@ private:
     QHBoxLayout * l_pb;
     QVBoxLayout * slider_layout;
 
-    QScrollArea * scroll;
-
     QPushButton * pb_load;
     QPushButton * pb_save;
     QPushButton * pb_run;

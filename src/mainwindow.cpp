@@ -24,8 +24,6 @@ MainWindow::MainWindow(QWidget *parent) :
     highlighter_script=new Highlighter(te_script->document());
     highlighter_console=new Highlighter(te_console->document());
 
-    scroll=new QScrollArea();
-
     pb_load=new QPushButton("Load",this);
     pb_save=new QPushButton("Save",this);
     pb_run=new QPushButton("Run (F1)",this);
@@ -37,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent) :
     a_direct_save=new QAction(this);
     a_direct_save->setShortcut(tr("Ctrl+S"));
     this->addAction(a_direct_save);
-    scroll->setWidget(w_svg);
 
     te_script->setMaximumWidth(512);
     te_console->setMaximumSize(512,200);
@@ -66,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->gridLayout->addWidget(tab_view,0,0);
     ui->gridLayout->addWidget(te_console,1,0);
     ui->gridLayout->addLayout(l_pb,2,0);
-    ui->gridLayout->addWidget(scroll,0,1,4,1);
+    ui->gridLayout->addWidget(w_svg,0,1,4,1);
 
     connect(pb_load,SIGNAL(clicked()),this,SLOT(slot_load()));
     connect(pb_save,SIGNAL(clicked()),this,SLOT(slot_save()));
@@ -1613,7 +1610,6 @@ Err MainWindow::process(QStringList content)
                 //                generator.setSize(size);
 
                 painter.begin(&generator);
-                w_svg->setFixedSize(size);
             }
             else if(args.size()==1 && args[0]==QString("SVG_END"))//Ok
             {
