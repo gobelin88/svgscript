@@ -20,6 +20,7 @@
 #include <QScrollArea>
 #include <obj.h>
 #include <QSlider>
+#include <QSplitter>
 
 #include <displayer.h>
 
@@ -43,10 +44,6 @@ struct Err
     int id;
     QString cmd;
 };
-
-namespace Ui {
-class MainWindow;
-}
 
 class MainWindow : public QMainWindow
 {
@@ -93,8 +90,6 @@ private:
 
     std::vector<std::vector<double>> loadCSV(QString filename);
     bool plot(QPainter &painter, QPainterPath &path, QRectF area, double scaleX, double scaleY, QString filename, int idX, int idY);
-
-    Ui::MainWindow *ui;
 
     QHBoxLayout * l_pb;
     QVBoxLayout * slider_layout;

@@ -7,6 +7,8 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsSvgItem>
 #include <QPaintEvent>
+#include <QMenu>
+#include <QAction>
 #include <qmath.h>
 
 #ifndef QT_NO_OPENGL
@@ -20,6 +22,11 @@ SvgView::SvgView(QWidget *parent)
     , m_backgroundItem(nullptr)
     , m_outlineItem(nullptr)
 {
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(showContextMenu(const QPoint &)));
+
     setScene(new QGraphicsScene(this));
     setTransformationAnchor(AnchorUnderMouse);
     setDragMode(ScrollHandDrag);
@@ -28,13 +35,50 @@ SvgView::SvgView(QWidget *parent)
     // Prepare background check-board pattern
     QPixmap tilePixmap(64, 64);
     tilePixmap.fill(Qt::white);
-//    QPainter tilePainter(&tilePixmap);
-//    QColor color(220, 220, 220);
-//    tilePainter.fillRect(0, 0, 32, 32, color);
-//    tilePainter.fillRect(32, 32, 32, 32, color);
-//    tilePainter.end();
+    QPainter tilePainter(&tilePixmap);
+    QColor color(230, 230, 230);
+    tilePainter.fillRect(0, 0, 32, 32, color);
+    tilePainter.fillRect(32, 32, 32, 32, color);
+    tilePainter.end();
 
     setBackgroundBrush(tilePixmap);
+    setHighQualityAntialiasing(false);
+    setViewBackground(true);
+    setViewOutline(true);
+}
+
+void SvgView::showContextMenu(const QPoint &pos)
+{
+   QMenu contextMenu(tr("Context menu"), this);
+
+   QAction action1("Zoom reset", this);
+   QAction action2("Zoom +", this);
+   QAction action3("Zoom -", this);
+   QAction action4("Enable High Quality Antialiazing", this);
+   QAction action5("Enable Background", this);
+   QAction action6("Enable OutLine", this);
+   action4.setCheckable(true);
+   action4.setChecked(highQualityAntialiasing);
+   action5.setCheckable(true);
+   action5.setChecked(isBackgroundVisible);
+   action6.setCheckable(true);
+   action6.setChecked(isOutLineVisible);
+
+   connect(&action1, SIGNAL(triggered()), this, SLOT(resetZoom()));
+   connect(&action2, SIGNAL(triggered()), this, SLOT(zoomIn()));
+   connect(&action3, SIGNAL(triggered()), this, SLOT(zoomOut()));
+   connect(&action4, SIGNAL(triggered(bool)), this, SLOT(setHighQualityAntialiasing(bool)));
+   connect(&action5, SIGNAL(triggered(bool)), this, SLOT(setViewBackground(bool)));
+   connect(&action6, SIGNAL(triggered(bool)), this, SLOT(setViewOutline(bool)));
+
+   contextMenu.addAction(&action1);
+   contextMenu.addAction(&action2);
+   contextMenu.addAction(&action3);
+   contextMenu.addSeparator();
+   contextMenu.addAction(&action4);
+   contextMenu.addAction(&action5);
+   contextMenu.addAction(&action6);
+   contextMenu.exec(mapToGlobal(pos));
 }
 
 void SvgView::drawBackground(QPainter *p, const QRectF &)
@@ -54,9 +98,6 @@ bool SvgView::load(const QString &fileName)
 {
     QGraphicsScene *s = scene();
 
-    const bool drawBackground = (m_backgroundItem ? m_backgroundItem->isVisible() : false);
-    const bool drawOutline = (m_outlineItem ? m_outlineItem->isVisible() : true);
-
     QScopedPointer<QGraphicsSvgItem> svgItem(new QGraphicsSvgItem(fileName));
     if (!svgItem->renderer()->isValid())
         return false;
@@ -72,7 +113,7 @@ bool SvgView::load(const QString &fileName)
     m_backgroundItem = new QGraphicsRectItem(m_svgItem->boundingRect());
     m_backgroundItem->setBrush(Qt::white);
     m_backgroundItem->setPen(Qt::NoPen);
-    m_backgroundItem->setVisible(drawBackground);
+    m_backgroundItem->setVisible(isBackgroundVisible);
     m_backgroundItem->setZValue(-1);
 
     m_outlineItem = new QGraphicsRectItem(m_svgItem->boundingRect());
@@ -80,7 +121,7 @@ bool SvgView::load(const QString &fileName)
     outline.setCosmetic(true);
     m_outlineItem->setPen(outline);
     m_outlineItem->setBrush(Qt::NoBrush);
-    m_outlineItem->setVisible(drawOutline);
+    m_outlineItem->setVisible(isOutLineVisible);
     m_outlineItem->setZValue(1);
 
     s->addItem(m_backgroundItem);
@@ -107,6 +148,7 @@ void SvgView::setRenderer(RendererType type)
 void SvgView::setHighQualityAntialiasing(bool highQualityAntialiasing)
 {
 #ifndef QT_NO_OPENGL
+    this->highQualityAntialiasing=highQualityAntialiasing;
     setRenderHint(QPainter::HighQualityAntialiasing, highQualityAntialiasing);
 #else
     Q_UNUSED(highQualityAntialiasing);
@@ -115,17 +157,15 @@ void SvgView::setHighQualityAntialiasing(bool highQualityAntialiasing)
 
 void SvgView::setViewBackground(bool enable)
 {
-    if (!m_backgroundItem)
-          return;
-
+    isBackgroundVisible=enable;
+    if (!m_backgroundItem)return;
     m_backgroundItem->setVisible(enable);
 }
 
 void SvgView::setViewOutline(bool enable)
 {
-    if (!m_outlineItem)
-        return;
-
+    isOutLineVisible=enable;
+    if (!m_outlineItem)return;
     m_outlineItem->setVisible(enable);
 }
 

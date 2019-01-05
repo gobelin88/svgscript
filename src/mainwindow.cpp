@@ -1,13 +1,10 @@
 ﻿#include "mainwindow.h"
-#include "ui_mainwindow.h"
 
 #include "displayer.h"
 
 #include <complex>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     w_svg=new SvgView();
     //w_svg=new QSvgWidget();
@@ -15,8 +12,6 @@ MainWindow::MainWindow(QWidget *parent) :
     version=QString("v6.0");
 
     pe=nullptr;
-
-    ui->setupUi(this);
 
     te_script=new CodeEditor();
     te_console=new QTextEdit();
@@ -36,8 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     a_direct_save->setShortcut(tr("Ctrl+S"));
     this->addAction(a_direct_save);
 
-    te_script->setMaximumWidth(512);
-    te_console->setMaximumSize(512,200);
+
 
     l_pb=new QHBoxLayout();
     l_pb->addWidget(pb_load);
@@ -45,25 +39,29 @@ MainWindow::MainWindow(QWidget *parent) :
     l_pb->addWidget(pb_run );
     l_pb->addWidget(pb_search);
 
-    slider_layout=new QVBoxLayout();
-
-    tab_view=new QTabWidget();
-
-
-
+    QWidget * widget_slider=new QWidget;
+    slider_layout=new QVBoxLayout(widget_slider);
     slider_layout->addStretch();
 
+    tab_view=new QTabWidget();
     tab_view->setMaximumWidth(512);
-
-    QWidget * widget_slider=new QWidget();
-    widget_slider->setLayout(slider_layout);
     tab_view->addTab(widget_slider,"Sliders");
     tab_view->addTab(te_script,"Script");
 
-    ui->gridLayout->addWidget(tab_view,0,0);
-    ui->gridLayout->addWidget(te_console,1,0);
-    ui->gridLayout->addLayout(l_pb,2,0);
-    ui->gridLayout->addWidget(w_svg,0,1,4,1);
+    QWidget * leftWidget=new QWidget;
+    QVBoxLayout * vLayout=new QVBoxLayout(leftWidget);
+    vLayout->addWidget(tab_view);
+    vLayout->addWidget(te_console);
+    vLayout->addLayout(l_pb);
+
+    QSplitter * spliter=new QSplitter(Qt::Horizontal);
+    spliter->addWidget(leftWidget);
+    spliter->addWidget(w_svg);
+
+    this->setCentralWidget(spliter);
+    leftWidget->setMaximumWidth(512);
+    w_svg->setMinimumSize(600,600);
+    spliter->setMinimumSize(800,600);
 
     connect(pb_load,SIGNAL(clicked()),this,SLOT(slot_load()));
     connect(pb_save,SIGNAL(clicked()),this,SLOT(slot_save()));
@@ -81,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+
 }
 
 void MainWindow::loadStyle(QString filename)

@@ -39,6 +39,6 @@ HEADERS += \
     codeeditor.h \
     svgview.h
 
-FORMS += mainwindow.ui
+FORMS +=
 
 INCLUDEPATH += C:/Eigen334

@@ -33,6 +33,7 @@ public slots:
     void zoomIn();
     void zoomOut();
     void resetZoom();
+    void showContextMenu(const QPoint &pos);
 
 signals:
     void zoomChanged();
@@ -51,5 +52,9 @@ private:
     QGraphicsRectItem *m_outlineItem;
 
     QImage m_image;
+
+    bool highQualityAntialiasing;
+    bool isBackgroundVisible;
+    bool isOutLineVisible;
 };
 #endif // SVGVIEW_H
