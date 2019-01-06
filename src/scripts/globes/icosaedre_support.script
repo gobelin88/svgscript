@@ -26,18 +26,20 @@ DEFINE mw 0.16;//Marge d'ajustement L
 DEFINE X 100;
 DEFINE Y 133;
 
-SVG_BEGIN 512 512;
+DEFINE size 0.2;
+
+SVG_BEGIN 380 270;
 
 /////////////////////////////////////////////////////////////////////GLOBE
-SVG_PEN 0 0 0 0.5 Solid;
-/*PROJECT_OBJECT
+SVG_PEN 0 0 0 size Solid;
+PROJECT_OBJECT
 ./rc/icosaedre.obj 
 X Y
 0 0 t
 D/3.80423
-2;*/
+2;
 /////////////////////////////////////////////////////////////////////GIMBALE
-SVG_PEN 255 0 0 0.5 Solid;
+SVG_PEN 255 0 0 size Solid;
 
 //Le C ARM------------------------------------------------------------------
 DRAW_PATH
@@ -63,7 +65,7 @@ Lc -sR*2 0 W dL*1.5 3 3
 C sR 0 sR 180 -180;
 TRANSFORM_ROTATE X Y Obliquite;
 
-SVG_PEN 255 0 0 0.5 Solid;
+SVG_PEN 255 0 0 size Solid;
 DRAW_CIRCLE X Y sR+10;
 DRAW_RECT_CRENEAUX 
 X-2.5*dL+W Y-2*dL
@@ -81,7 +83,7 @@ GOTO M 8;
 
 //Les pattes du globe-------------------------------------------------------
 DEFINE Rleg 10;
-SVG_PEN 0 0 255 0.5 Solid;
+SVG_PEN 0 0 255 size Solid;
 DRAW_PATH_R
 M X Y
 L sR-dL 0
@@ -139,7 +141,7 @@ L 0 -W
 L -2*dL-(10-dL)-2.5 0
 L 0 -Rleg;
 
-SVG_PEN 255 0 0 0.5 Solid;
+SVG_PEN 255 0 0 size Solid;
 DRAW_CIRCLE X Y sR+10+Rleg;
 
 DEFINE N 0;
@@ -150,7 +152,7 @@ TRANSFORM_ROTATE X Y -N*45;
 GOTO N 8;
 
 //Les Kikouilloux--------------------------------------------------------------
-SVG_PEN 0 0 255 0.5 Solid;
+SVG_PEN 0 0 255 size Solid;
 
 DRAW_PATH_R
 M X-Lpp/2 Y-gD/2-gE/2-W/2
@@ -223,7 +225,7 @@ DRAW_CROSS X-5*dL Y-delta-2.5*dL W-mw Lpp;
 
 
 //Marquage Verif --------------------------------------------------------------
-SVG_PEN 0 128 0 0.5 Dot;
+SVG_PEN 0 128 0 size Dot;
 //DRAW_CIRCLE X Y D/2;
 //DRAW_CIRCLE X Y Ri;
 
@@ -247,7 +249,7 @@ DEFINE dHy -Pyr-Uy/Ux*W;
 DEFINE dHx -(h-W*2)-W;
 DEFINE dHn Math.sqrt(dHx*dHx+dHy*dHy);
 
-SVG_PEN 255 0 0 0.4 Solid;
+SVG_PEN 255 0 0 size Solid;
 
 DRAW_POLYGON X Y r N 180;
 DEFINE I 0;
@@ -256,9 +258,9 @@ LABEL I;
 DEFINE tmp 0.5*(-dHx-W+p-dL-s);
 
 TRANSFORM_ROTATE X Y 360/N*I+180;
-SVG_PEN 0 255 0 0.4 Solid;
+SVG_PEN 0 255 0 size Solid;
 DRAW_RECT X-h/2-dL/2-s/2-p Y-W/2+mw/2 dL+s+tmp W-mw;
-SVG_PEN 255 0 0 0.4 Solid;
+SVG_PEN 255 0 0 size Solid;
 DRAW_RECT X-h/2-dL/2-s/2-p Y-W/2+mw/2 dL+s W-mw;
 TRANSFORM_ROTATE X Y -360/N*I-180;
 

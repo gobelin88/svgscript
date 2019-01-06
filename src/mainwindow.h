@@ -66,7 +66,7 @@ public:
                                 int Nlat,
                                 int Nlon,
                                 Vector3d euler_angles,
-                                double radius, int idpN, int idpS, double W, double dL, double dA, double marge);
+                                double radius, int idpN, int idpS, double W, double dL, double dA, double marge,int mode);
 
     QScriptEngine *engine(){return pe;}
 

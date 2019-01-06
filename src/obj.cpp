@@ -252,21 +252,22 @@ QLineF Object::clamp(QLineF line,QPolygonF poly)
 }
 
 void Object::getFaceGnomonic(QPainter & painter,
-                                 QImage map,
-                                 int res,
-                                 QPointF Where,
-                                 int marge,
-                                 int id ,
-                                 QColor color,
-                                 bool meridiens,
-                                 QColor color_meridiens,
-                                 int Nlat,
-                                 int Nlon,
-                                 double radius,
-                                 int idpN,int idpS,
-                                 double W,
-                                 double dL,
-                                 double dA)
+                             QImage map,
+                             int res,
+                             QPointF Where,
+                             int marge,
+                             int id ,
+                             QColor color,
+                             bool meridiens,
+                             QColor color_meridiens,
+                             int Nlat,
+                             int Nlon,
+                             double radius,
+                             int idpN,int idpS,
+                             double W,
+                             double dL,
+                             double dA,
+                             int mode)
 {
     Face f=faces[id];
     Base b=getBase(f);
@@ -286,23 +287,47 @@ void Object::getFaceGnomonic(QPainter & painter,
     for(int i=0;i<f.size();i++)
     {
         Vector2d pA=getCoord2D(b,pts[f[i]],bary);
+        Vector2d pB=getCoord2D(b,pts[f[(i+1)%f.size()]],bary);
+        Vector2d pC=0.5*(pA+pB);
+
         Vector2d pt(pA.x()+center.x(), pA.y()+center.y() );
+        Vector2d pt2(pC.x()+center.x(), pC.y()+center.y() );
         poly.append(QPointF(pt.x(),pt.y()));
         polyg.append(QPointF(pA.x(),pA.y()));
 
         texCoord[id][i]=Vector2d((pA.x()-span.x())/span.width(),(pA.y()-span.y())/span.height());
 
-        Vector2d u=Vector2d(pt.x()-center.x(),pt.y()-center.y()).normalized();
-        Vector2d v=Vector2d(-u.y(),u.x());
+
+
 
         QPolygonF poly_r;
-        Vector2d pr;
-        pr=-u*dA+pt-v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
-        pr=-u*dA+pt-u*dL-v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
-        pr=-u*dA+pt-u*dL+v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
-        pr=-u*dA+pt+v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
+        if(mode==0)
+        {
+            Vector2d u=pA.normalized();
+            Vector2d v=Vector2d(-u.y(),u.x());
+            Vector2d pr;
+            pr=-u*dA+pt-v*W/2;      poly_r.append( QPointF(pr.x(),pr.y()) );
+            pr=-u*dA+pt-u*dL-v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
+            pr=-u*dA+pt-u*dL+v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
+            pr=-u*dA+pt+v*W/2;      poly_r.append( QPointF(pr.x(),pr.y()) );
+            rect_list.append(poly_r);
+        }
+        else
+        {
+            Vector2d u=pC.normalized();
+            Vector2d v=Vector2d(-u.y(),u.x());
+            if(abs(u.dot(pB-pA))<0.0001)
+            {
+                Vector2d pr;
+                pr=-u*dA+pt2-v*W/2;     poly_r.append( QPointF(pr.x(),pr.y()) );
+                pr=-u*dA+pt2-u*dL-v*W/2;poly_r.append( QPointF(pr.x(),pr.y()) );
+                pr=-u*dA+pt2-u*dL+v*W/2;poly_r.append( QPointF(pr.x(),pr.y()) );
+                pr=-u*dA+pt2+v*W/2;     poly_r.append( QPointF(pr.x(),pr.y()) );
+                rect_list.append(poly_r);
+            }
+        }
 
-        rect_list.append(poly_r);
+
     }
 
     //------------------------------------------------------------------------
@@ -312,22 +337,16 @@ void Object::getFaceGnomonic(QPainter & painter,
     {
         for(int j=0;j<res;j++)
         {
-            double x= i * span.width()/res+span.x();
-            double y= j * span.height()/res+span.y();
+            double x= i * (span.width())/(res-1)+span.x();
+            double y= j * (span.height())/(res-1)+span.y();
 
             if( polyg.containsPoint(QPointF(x,y),Qt::OddEvenFill) )//-1 ???
             {
                 Vector2d p_gno=getGnomonic(getCoord3D(b,Vector2d(x,y),bary));
 
-                if(p_gno.x()<=1 && p_gno.y()<=1)
-                {
-                    img.setPixel(i,j,map.pixel( round(p_gno.x()*(map.size().width ()-1)) ,
-                                                round(p_gno.y()*(map.size().height()-1)) ) );
-                }
-                else
-                {
-                    std::cout<<" err="<<p_gno.x()<<" "<<p_gno.y()<<std::endl;
-                }
+                img.setPixel(i,j,map.pixel( ((int)round(p_gno.x()*(map.size().width ())))%(map.size().width ()) ,
+                                            ((int)round(p_gno.y()*(map.size().height())))%(map.size().height()) ) );
+
             }
         }
     }
@@ -335,10 +354,10 @@ void Object::getFaceGnomonic(QPainter & painter,
 
     //------------------------------------------------------------------------
 
-    QRectF rectImage(Where-QPointF(marge,marge),span.size()+QSizeF(marge*2,marge*2));
-    painter.drawImage(QRectF(round(rectImage.x()),
-                             round(rectImage.y()),rectImage.width(),rectImage.height()), img );
+    QRectF rectImage(Where,span.size());
+    painter.drawImage(rectImage,img);
 
+    //painter.drawRect(QRect(rectImage.x(),rectImage.y(),rectImage.width(),rectImage.height()));
     if(idpN==id || idpS==id)
     {
         painter.drawEllipse(QPointF(center.x(),center.y()),radius,radius);
@@ -386,7 +405,7 @@ void Object::getFaceGnomonic(QPainter & painter,
             Vector2d ppB=getGnomonicProj(b,list_pB[i],bary);
 
             if( polyg.containsPoint(QPointF(ppA.x(),ppA.y()),Qt::WindingFill) ||
-                polyg.containsPoint(QPointF(ppB.x(),ppB.y()),Qt::WindingFill) )
+                    polyg.containsPoint(QPointF(ppB.x(),ppB.y()),Qt::WindingFill) )
             {
                 QLineF line= clamp( QLineF(ppA.x(),ppA.y(),ppB.x(),ppB.y()),polyg);
                 //QLineF line= QLineF(ppA.x(),ppA.y(),ppB.x(),ppB.y());
@@ -486,7 +505,7 @@ void Object::draw(QOpenGLFunctions_1_0 * f)
 void Object::getGnomonicAll(QImage map, int res, QPainter & painter, bool meridiens, int Nlat, int Nlon, double radius,int idpN,int idpS,double W,
                             double dL,
                             double dA,
-                            double marge)
+                            double marge,int mode)
 {
     int pack=(int)sqrt(faces.size())+1;
 
@@ -499,15 +518,15 @@ void Object::getGnomonicAll(QImage map, int res, QPainter & painter, bool meridi
         //QImage img=getFaceGnomonic(map,Vector2d(res,res),i,span);
 
         getFaceGnomonic(painter,
-                            map,
-                            res,
-                            where,
-                            marge,
-                            i,
-                            QColor(255,0,0),
-                            meridiens,
-                            QColor(0,128,255),
-                            Nlat,Nlon,radius,idpN,idpS,W,dL,dA);
+                        map,
+                        res,
+                        where,
+                        marge,
+                        i,
+                        QColor(255,0,0),
+                        meridiens,
+                        QColor(0,128,255),
+                        Nlat,Nlon,radius,idpN,idpS,W,dL,dA,mode);
 
         if((i+1)%pack==0)
         {

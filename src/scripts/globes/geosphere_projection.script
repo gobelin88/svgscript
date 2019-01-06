@@ -5,7 +5,7 @@ DEFINE Theta Math.acos(-1/Math.sqrt(5)); //Angle dièdre
 DEFINE ra A/(2*Math.sin($pi/5));  //Rayon circonscrit
 DEFINE ap A/(2*Math.tan($pi/5));//Apothème (Rayon inscrit)
 
-DEFINE marge 1;
+DEFINE marge 0.5;
 
 DEFINE X marge+A/2;
 DEFINE Y ap+marge;
@@ -16,27 +16,28 @@ DEFINE dL 6;
 DEFINE Ratio 1;
 
 DEFINE Delta 5;
-
+DEFINE dm 6;
 
 //--------------------------------------------------------------------------
 
-SVG_BEGIN 1024 1024;
+SVG_BEGIN 512 512;
 
 //00_cube
 //01_dodecaedre
 //02_icosaedre
 //03_geosphere
 
-
+HELP PROJECT_OBJECT_MAP;
 PROJECT_OBJECT_MAP 
 ./rc/geosphere.obj 
-./rc/watermask.00004.png 
+./rc/constellations.png 
 512
-D/2
+(D-dm)/2
 1 20 20
 90 0 0
 2.5 54 55
-W dL Delta
-marge;
+W dL 0
+marge
+1;
 
 SVG_END;

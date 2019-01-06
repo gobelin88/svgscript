@@ -30,7 +30,7 @@ public:
     double getRadius();
 
 
-    void getGnomonicAll(QImage map, int res, QPainter & painter, bool meridiens, int Nlat, int Nlon, double radius,int idpN,int idpS, double W, double dL, double dA,double marge);
+    void getGnomonicAll(QImage map, int res, QPainter & painter, bool meridiens, int Nlat, int Nlon, double radius, int idpN, int idpS, double W, double dL, double dA, double marge, int mode);
 
     void draw(QOpenGLFunctions_1_0 *f);
 
@@ -64,7 +64,7 @@ private:
                          double radius, int idpN, int idpS,
                          double W,
                          double dL,
-                         double dA);
+                         double dA,int mode);
 
 
     QLineF clamp(QLineF line, QPolygonF r);

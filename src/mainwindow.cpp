@@ -6,6 +6,7 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+    std::cout<<"ok"<<std::endl;
     w_svg=new SvgView();
     //w_svg=new QSvgWidget();
 
@@ -44,14 +45,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     slider_layout->addStretch();
 
     tab_view=new QTabWidget();
-    tab_view->setMaximumWidth(512);
     tab_view->addTab(widget_slider,"Sliders");
     tab_view->addTab(te_script,"Script");
 
     QWidget * leftWidget=new QWidget;
     QVBoxLayout * vLayout=new QVBoxLayout(leftWidget);
-    vLayout->addWidget(tab_view);
-    vLayout->addWidget(te_console);
+
+    QSplitter * spliter_edit=new QSplitter(Qt::Vertical);
+
+    spliter_edit->addWidget(tab_view);
+    spliter_edit->addWidget(te_console);
+    vLayout->addWidget(spliter_edit);
     vLayout->addLayout(l_pb);
 
     QSplitter * spliter=new QSplitter(Qt::Horizontal);
@@ -59,19 +63,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     spliter->addWidget(w_svg);
 
     this->setCentralWidget(spliter);
+    te_script->setMinimumHeight(400);
     leftWidget->setMaximumWidth(512);
     w_svg->setMinimumSize(600,600);
     spliter->setMinimumSize(800,600);
 
     connect(pb_load,SIGNAL(clicked()),this,SLOT(slot_load()));
     connect(pb_save,SIGNAL(clicked()),this,SLOT(slot_save()));
-
     connect(pb_run,SIGNAL(clicked()),this,SLOT(initSliders()));
     connect(pb_run,SIGNAL(clicked()),this,SLOT(slot_run()));
-
     connect(a_direct_save,SIGNAL(triggered()),this,SLOT(slot_direct_save()));
     connect(te_script,SIGNAL(textChanged()),this,SLOT(slot_modified()));
-
     connect(pb_search,SIGNAL(clicked()),this,SLOT(search()));
 
     loadStyle(":/qss_script/rc/style.txt");
@@ -988,7 +990,7 @@ bool MainWindow::calcGnomonicProjection(QPainter & painter,
                                         int Nlat,
                                         int Nlon,
                                         Vector3d euler_angles,
-                                        double radius,int idpN,int idpS,double W,double dL,double dA,double marge)
+                                        double radius,int idpN,int idpS,double W,double dL,double dA,double marge,int mode)
 {
     Object * pobj=new Object(obj_filename,scale,euler_angles);
     if(!pobj->isOpen()){return false;}
@@ -1010,7 +1012,7 @@ bool MainWindow::calcGnomonicProjection(QPainter & painter,
 
     //pobj->disp();
 
-    pobj->getGnomonicAll(map,res,painter,meridiens,Nlat,Nlon,radius,idpN,idpS,W,dL,dA,marge);
+    pobj->getGnomonicAll(map,res,painter,meridiens,Nlat,Nlon,radius,idpN,idpS,W,dL,dA,marge,mode);
     std::cout<<std::endl;
 
     displayer->add(pobj);
@@ -1744,6 +1746,40 @@ Err MainWindow::process(QStringList content)
                         path.lineTo(QPointF(exp(args[k+1]),exp(args[k+2])));
                         k+=3;
                     }
+                    else if(args[k]=="Cl" && (k+6)<args.size())
+                    {
+                        QPointF P1 (exp(args[k+1]),exp(args[k+2]));
+                        QPointF P2 (exp(args[k+3]),exp(args[k+4]));
+
+                        QLineF line(P1,P2);
+                        double E=exp(args[k+5]);
+                        double dL=line.length();
+                        int mode=exp(args[k+6]);
+
+                        QPointF u(line.dx()/dL,line.dy()/dL);
+                        QPointF v(u.y(),-u.x());
+
+                        QPointF cp=P1;
+                        if(mode==0)
+                        {
+                            clip(path,cp,u,v,E,dL);
+                        }
+                        else if(mode==1)
+                        {
+                            clipb(path,cp,u,v,E,dL);
+                        }
+                        if(mode==2)
+                        {
+                            clip(path,cp,u,-v,E,dL);
+                        }
+                        else if(mode==3)
+                        {
+                            clipb(path,cp,u,-v,E,dL);
+                        }
+
+
+                        k+=7;
+                    }
                     else if(args[k]=="C" && (k+5)<args.size())
                     {
                         QPointF c= QPointF(exp(args[k+1]),exp(args[k+2]) );
@@ -1794,13 +1830,38 @@ Err MainWindow::process(QStringList content)
                         P=P+QPointF(exp(args[k+1]),exp(args[k+2]));
                         k+=7;
                     }
-                    else if(args[k]=="Cl" && (k+5)<args.size())
+                    else if(args[k]=="Cl" && (k+4)<args.size())
                     {
-                        P=P+QPointF(exp(args[k+1]),exp(args[k+2]));
+                        QPointF cp=P;
+                        P+=QPointF(exp(args[k+1]),exp(args[k+2]));
 
-                        //Todo
+                        QLineF line(cp,P);
+                        double E=exp(args[k+3]);
+                        double dL=line.length();
+                        int mode=exp(args[k+4]);
 
-                        k+=6;
+                        QPointF u(line.dx()/dL,line.dy()/dL);
+                        QPointF v(u.y(),-u.x());
+
+                        if(mode==0)
+                        {
+                            clip(path,cp,u,v,E,dL);
+                        }
+                        else if(mode==1)
+                        {
+                            clipb(path,cp,u,v,E,dL);
+                        }
+                        if(mode==2)
+                        {
+                            clip(path,cp,u,-v,E,dL);
+                        }
+                        else if(mode==3)
+                        {
+                            clipb(path,cp,u,-v,E,dL);
+                        }
+
+
+                        k+=5;
                     }
                     else if(args[k]=="C" && (k+5)<args.size())
                     {
@@ -2287,11 +2348,11 @@ Err MainWindow::process(QStringList content)
                 }
                 painter.drawPath(transform.map(path));
             }
-            else if (args.size()==18 && args[0]==QString("PROJECT_OBJECT_MAP"))
+            else if (args.size()==19 && args[0]==QString("PROJECT_OBJECT_MAP"))
             {
                 bool ok=calcGnomonicProjection(painter,args[1],args[2],exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),
                         Vector3d(exp(args[8]),exp(args[9]),exp(args[10])),exp(args[11]),exp(args[12]),exp(args[13])
-                        ,exp(args[14]),exp(args[15]),exp(args[16]),exp(args[17]));
+                        ,exp(args[14]),exp(args[15]),exp(args[16]),exp(args[17]),exp(args[18]));
                 if(!ok)return Err(i,args[0]);
             }
             else if (args.size()==9 && args[0]==QString("PROJECT_OBJECT"))
