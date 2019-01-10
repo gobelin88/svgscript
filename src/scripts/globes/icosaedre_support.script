@@ -16,12 +16,12 @@ DEFINE sR D*4/15;//Rayon socle
 
 DEFINE E_aimant 2.8;//Epaisseur aimant
 DEFINE D_aimant 5.8;//Diametre aimant
-DEFINE M_aimant 3.7;//Marge entre le globe et le kikouillou
+DEFINE M_aimant 3.2;//Marge entre le globe et le kikouillou
 DEFINE Sp 10;//Epaisseur K
 DEFINE Lp (D/2-Ri+margeD+gE/2-Sp/2-W/2-M_aimant);//Longueur K
 DEFINE Lpp (Sp+W*3);//Longueur Base Kikouillou
 
-DEFINE mw 0.16;//Marge d'ajustement L
+DEFINE mw 0.13;//Marge d'ajustement L
 
 DEFINE X 100;
 DEFINE Y 133;
@@ -257,30 +257,34 @@ LABEL I;
 
 DEFINE tmp 0.5*(-dHx-W+p-dL-s);
 
+
+DEFINE dec (-(dHx+W-p*2)-(dL+s))/2;
+
 TRANSFORM_ROTATE X Y 360/N*I+180;
-SVG_PEN 0 255 0 size Solid;
-DRAW_RECT X-h/2-dL/2-s/2-p Y-W/2+mw/2 dL+s+tmp W-mw;
 SVG_PEN 255 0 0 size Solid;
 DRAW_RECT X-h/2-dL/2-s/2-p Y-W/2+mw/2 dL+s W-mw;
+SVG_PEN 0 255 0 size Solid;
+DRAW_RECT X-h/2-dL/2-s/2-p+dec-W/2-mw/2 Y-W/2+mw/2 dL+s W-mw;
 TRANSFORM_ROTATE X Y -360/N*I-180;
 
-TRANSFORM_ROTATE X Y 360/N*I;
 
+SVG_PEN 255 0 0 size Solid;
+TRANSFORM_ROTATE X Y 360/N*I;
 DRAW_PATH_R
-M X+r*1.75 Y+r/4
+M X+h Y-W*2-16
 L -W+p*2 0
 Lc dHx+W-p*2 0 W dL+s 0 3
-L -mw 0
+L 0 dHy/2+W/4
+L W/2 0
 L 0 -W
-L -mw 0
-L mw*2 dHy+W
+L -W/2 0
+L 0 dHy/2+W*3/4
 Lc Ux*(dHn-dL-Delta) -Uy*(dHn-dL-Delta) W-0.05 dL+0.05 0 3
 L Ux*(dL+Delta) -Uy*(dL+Delta);
 TRANSFORM_ROTATE X Y -360/N*I;
 
 GOTO I N;
 
-DRAW_CIRCLE X Y 8;
-
+DRAW_CIRCLE X Y h/2+p-(dL+s)*0.5-dec+W;
 
 SVG_END;

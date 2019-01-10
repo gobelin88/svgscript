@@ -458,8 +458,8 @@ void MainWindow::draw_ellipseCreneaux(
 
 void clip(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
 {
-    double ra=0.32, rb=1.2;
-    double dr=2,m=ra;
+    double ra=0.28, rb=1.2;//32 trop serré
+    double dr=1.8,m=2*ra;
 
     cp+=v*E-u*ra;pts.lineTo(cp);
     cp+=v*rb+u*ra;pts.lineTo(cp);
@@ -478,8 +478,8 @@ void clip(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,do
 
 void clipb(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
 {
-    double ra=0.32, rb=1.2;
-    double dr=2,m=ra;
+    double ra=0.28, rb=1.2;
+    double dr=1.8,m=2*ra;
 
     cp+=v*E-u*ra;pts.lineTo(cp);
     cp+=v*rb+u*ra;pts.lineTo(cp);
