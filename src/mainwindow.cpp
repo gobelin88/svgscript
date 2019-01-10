@@ -971,12 +971,10 @@ bool MainWindow::calcProjection(QPainterPath & path,
                                 Vector3d euler_angles,
                                 float scale,int mode)
 {
-    std::cout<<"scale="<<scale<<std::endl;
-    Object * pobj=new Object(obj_filename,scale,euler_angles);
-    if(!pobj->isOpen()){return false;}
+    Object pobj(obj_filename,(double)scale,euler_angles);
+    if(!pobj.isOpen()){return false;}
 
-    pobj->disp();
-    pobj->drawProj(path,c,mode);
+    pobj.drawProj(path,c,mode);
 
     return true;
 }

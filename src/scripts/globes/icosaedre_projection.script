@@ -33,13 +33,14 @@ SVG_BEGIN 1024 1024;
 PROJECT_OBJECT_MAP 
 ./rc/icosaedre.obj 
 ./rc/watermask.00004.png 
-512
+1024
 D/3.80423
 1 20 20
 0 0 -36
 2.5 0 3
 W dL Delta
-marge;
+marge
+0;
 
 DISP D/3.80423;
 

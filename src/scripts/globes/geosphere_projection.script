@@ -30,7 +30,7 @@ SVG_BEGIN 512 512;
 HELP PROJECT_OBJECT_MAP;
 PROJECT_OBJECT_MAP 
 ./rc/geosphere.obj 
-./rc/constellations.png 
+./rc/watermask.00004.png 
 512
 (D-dm)/2
 1 20 20

@@ -99,6 +99,8 @@ bool SvgView::load(const QString &fileName)
     QGraphicsScene *s = scene();
 
     QScopedPointer<QGraphicsSvgItem> svgItem(new QGraphicsSvgItem(fileName));
+
+
     if (!svgItem->renderer()->isValid())
         return false;
 
