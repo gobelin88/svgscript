@@ -21,6 +21,7 @@
 #include <obj.h>
 #include <QSlider>
 #include <QSplitter>
+#include <QTreeWidget>
 
 #include <displayer.h>
 
@@ -30,6 +31,7 @@
 #include "codeeditor.h"
 
 #include "svgview.h"
+#include "drawtree.h"
 
 class MyQSlider;
 
@@ -124,8 +126,7 @@ private:
     void draw_gear(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes=-1);
     void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center, double ra, double rb, double E, double dL, int n, int mode, double offset=0, double theta0=0, double dtheta=360);
     void draw_lineCreneaux(QPainterPath & pts, const QLineF & line, double E, double dL, int n, int mode, double offset=0);
-    void draw_Line(QPainter & painter,const QPointF & pa,const QPointF & pb);
-    void draw_pendule(QPainter & painter,double x,double y,double P,double theta,double daxe1,double daxe2);
+    void draw_pendule(QPainterPath & path,double x,double y,double P,double theta,double daxe1,double daxe2);
     QPainterPath draw_circle_tangent(QLineF line,double alpha);
 
     void calc_bobine(QPainter & painter, double Di, double N, double W, double S, double nbLayers, double t, QString type);
@@ -142,7 +143,7 @@ private:
 
     QTabWidget * tab_view;
 
-
+    QTreeWidget * w_tree;
 };
 
 class MyQSlider:public QWidget
@@ -254,6 +255,8 @@ private:
     QSlider * slider;
     QDoubleSpinBox * spin;
     QPushButton * pb_close,*pb_init;
+
+
 };
 
 #endif // MAINWINDOW_H

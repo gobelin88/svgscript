@@ -16,6 +16,7 @@ SVG_BEGIN 400 400;
 
 SVG_PEN 255 0 0 .5 Solid;
 
+ENTITY Gear1;
 TRANSFORM_ROTATE 100 100 -rot;
 DRAW_GEAR 100 100 m na alpha daxe 5;
 TRANSFORM_ROTATE 100 100 rot;
@@ -29,7 +30,7 @@ SVG_PEN 255 0 0 .5 Solid;
 
 DEFINE r na/nb;
 
-
+ENTITY Gear2;
 TRANSFORM_ROTATE 100+a 100 rot*r+(nb%2+1)*180/nb;
 DRAW_GEAR 100+a 100 m nb alpha daxe 5;
 TRANSFORM_ROTATE 100+a 100 -rot*r-(nb%2+1)*180/nb;

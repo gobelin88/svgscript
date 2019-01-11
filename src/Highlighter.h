@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 42
+#define NB_CMD 43
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -23,6 +23,9 @@ static const Command CommandsList[NB_CMD]={
     Command("SVG_PEN",              QObject::tr("r v b size t:\n\nDéfinit la couleur (r,v,b), la taille (size) et le type (t) du crayon. (t) peut prendre les valeurs (None,Solid,Dash,Dot).")),
     Command("SVG_BRUSH",            QObject::tr("r v b t:\n\nDéfinit la couleur (r,v,b) et le type (t) du pinceau. (t) peut prendre les valeurs (None,Solid).")),
 
+    Command("ENTITY",               QObject::tr("entity :\n\nDéfinit une entite.")),
+    Command("ENTITY_COPY",          QObject::tr("entity tx ty:\n\nCopie une entite puis la translate de tx ty.")),
+    Command("ENTITY_BOUNDING_RECT", QObject::tr("entity (node):\n\nAjoute le rectangle d'une entitée ou d'un noeud.")),
     Command("DEFINE",               QObject::tr("var value :\n\nDéfinition ou modification d'une variable (var) avec la valeur (val).")),
     Command("SLIDE",                QObject::tr("var value min max:\n\nDéfinition ou modification d'une variable (var) avec la valeur (val) plus slider (min,max).")),
     Command("DISP",                 QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
@@ -55,9 +58,6 @@ static const Command CommandsList[NB_CMD]={
     Command("DRAW_PENDULE",         QObject::tr("x y P Theta0 daxe1 daxe2: (P)Periode (daxe1-2)Diamètres des trous (Theta0)Angle du lancer pour la correction de la période... \n\n")),
     Command("DRAW_CROSS",           QObject::tr("x y w L :\n\n Dessine une croix centrée en (x,y) d'epaiseur (w) et le largeur/longueur (L)\n\n")),
     Command("DRAW_CLIP",            QObject::tr("x1 y1 x2 y2 w dL mode:\n\n Dessine un clip \n\n")),
-
-    Command("IMG_LOAD"           ,  QObject::tr("x y w h filename:\n\n Dessine une image (filename) dans un rectangle (x,t,w,h).") ),
-    Command("IMG_PIXEL"          ,  QObject::tr("x y w h filename dx,dy:\n\n Dessine une image (filename) dans un rectangle (x,t,w,h) en la pixelisant (dx,dy).") ),
 
     Command("TEXT_FONT",            QObject::tr("police taille :\n\n (police)=Arial Helvetica Times Roman")),
     Command("TEXT",                 QObject::tr("x y text (arg1) (arg2) :\n\n Dessine un text avec de possible arguments arg1 et arg2 aux endroits spécifiés pas %1 et %2")),

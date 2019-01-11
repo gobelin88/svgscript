@@ -8,7 +8,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     std::cout<<"ok"<<std::endl;
     w_svg=new SvgView();
-    //w_svg=new QSvgWidget();
 
     version=QString("v6.0");
 
@@ -44,9 +43,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     slider_layout=new QVBoxLayout(widget_slider);
     slider_layout->addStretch();
 
+    w_tree=new QTreeWidget;
+
     tab_view=new QTabWidget();
     tab_view->addTab(widget_slider,"Sliders");
     tab_view->addTab(te_script,"Script");
+    tab_view->addTab(w_tree,"Tree");
 
     QWidget * leftWidget=new QWidget;
     QVBoxLayout * vLayout=new QVBoxLayout(leftWidget);
@@ -755,14 +757,14 @@ QVector<QLineF> getIFS(QVector<QLineF> seed, QVector<QLineF> pattern, int order)
     }
 }
 
-QVector<QPointF> makePolygon(QVector<QLineF> list_lines)
+QPolygonF makePolygon(QVector<QLineF> list_lines)
 {
     QVector<QPointF> list_points;
     for(int i=0;i<list_lines.size();i++)
     {
         list_points.append(list_lines[i].p2());
     }
-    return list_points;
+    return QPolygonF (list_points);
 }
 
 QPainterPath getPuzzleShape(QLineF line,int mode)
@@ -1250,14 +1252,13 @@ void MainWindow::draw_gear_s(QPainterPath & path,double m,int n,double daxe,int 
 
 }
 
-void MainWindow::draw_pendule(QPainter & painter,double x,double y,double P,double theta,double daxe1,double daxe2)
+void MainWindow::draw_pendule(QPainterPath & path,double x,double y,double P,double theta,double daxe1,double daxe2)
 {
     //Calcule de la longueur du pendule
     double P0=P/(1+theta*theta/16.0*M_PI*M_PI/180/180);
     double L=P0*P0*9.81/(4*M_PI*M_PI)*1e3;
 
     QPointF c(x,y);
-    QPainterPath path;
 
     double W=5;
     double alpha_1=asin(W/daxe1)*180/M_PI;
@@ -1271,97 +1272,8 @@ void MainWindow::draw_pendule(QPainter & painter,double x,double y,double P,doub
     path.arcTo(QRectF(c.x()-daxe2/2,c.y()-daxe2/2+L,daxe2,daxe2),alpha_2 +90,360-alpha_2*2);
     path.lineTo(c+QPointF(daxe1/2*sin(alpha_1/180*M_PI),daxe1/2*cos(alpha_1/180*M_PI)));
 
-
-    painter.drawPath(transform.map(path));
-
     pe->globalObject().setProperty("Lp", L);
     this->te_console->append(QString("DEFINE Lp=%1").arg(L));
-}
-
-void MainWindow::calc_bobine(QPainter & painter,
-                             double Di,
-                             double N,
-                             double W,
-                             double S,
-                             double nbLayers,
-                             double t,QString type)
-{
-    double C[4]={0,0,0,0};                      //Coefficients L
-    unsigned int dN=0;                          //Nombre de pas en fonction du type
-
-    //////////////////////////////////////////////////////////////////////
-    if(type==QString("Square"))         {C[0]=1.27;C[1]=2.07;C[2]=0.18;C[3]=0.13;dN=4  ;}
-    else if(type==QString("Hexagone"))  {C[0]=1.09;C[1]=2.23;C[2]=0.00;C[3]=0.17;dN=6  ;}
-    else if(type==QString("Octogone"))  {C[0]=1.07;C[1]=2.29;C[2]=0.00;C[3]=0.19;dN=8  ;}
-    else if(type==QString("Circle"))    {C[0]=1.00;C[1]=2.46;C[2]=0.00;C[3]=0.20;dN=200;}
-
-    double dt=(W+S) * (1.0/cos(M_PI/dN));
-    double Ep=(N-1)*(W+S);                          //Epaisseur
-    double Do=Di+Ep*2;                          //Diametre exterieur
-    double R=Do/2.0 *(1.0/cos(M_PI/dN));        //Rayon exterieur
-
-    double Ca=0.184,Cb=-0.525,Cc=1.036,Cd=1.001;//Coefficients pour les couches
-    double Davg=(Di+Do)*0.5;                    //Diamètre moyen
-    double p=(Do-Di)/(Di+Do);                   //
-    double lt=0.0;                              //Longueur de piste
-
-    ///////////////////////////////////////////////////////////////////////
-
-    QPainterPath path;
-    double Ra,Rb,beta,alpha;
-
-
-
-    for(int i=0;i<N;i++)
-    {
-        double delta=R-(i-1)*dt;
-        for(unsigned int k=0;k<dN;k++)
-        {
-            alpha=(2*k+1)*M_PI/dN;
-            beta=(2*k+3)*M_PI/dN;
-            Ra=delta;
-            Rb=(k+1  ==dN-1)?delta:delta-dt;//(k+1==dN-1)?delta:delta-dt;
-
-            if(k==0 && i==0){path.moveTo(Ra*cos(alpha),Ra*sin(alpha));}
-
-            path.lineTo(Rb*cos(beta),Rb*sin(beta));
-
-            double dx=Rb*cos(beta)-Ra*cos(alpha);
-            double dy=Rb*sin(beta)-Ra*sin(alpha);
-            lt+=sqrt( dx*dx+dy*dy );
-        }
-    }
-    path.lineTo(Rb*cos(beta),Rb*sin(beta));
-    painter.drawPath( transform.map(path) );
-
-    //    for(int i=0;i<lines.size();i++)
-    //    {
-    //        painter.drawLine( transform.map(lines[i]) );
-    //        lt+=lines[i].length();
-    //    }
-
-    double L=(0.5*(4*M_PI*1e-7)*N*N*Davg*C[0])*log(C[1]/p+C[2]*p+C[3]*p*p)*1e3;
-    double Rt=lt*nbLayers*17*1e-9/(W*t*1e-3);
-    double Lt=L*nbLayers;
-    if(nbLayers>1)
-    {
-        for(int i=0;i<nbLayers;i++)
-        {
-            for(int j=0;j<i;j++)
-            {
-                double X=(i-j)*0.102;
-                double Kc=N*N/((Ca*X*X*X+Cb*X*X+Cc*X+Cd)*(1.67*N*N-5.84*N+65)*0.64);
-                Lt+=2*Kc*L;
-            }
-        }
-    }
-
-
-
-    pe->globalObject().setProperty("L",Lt);
-    pe->globalObject().setProperty("R",Rt);
-    pe->globalObject().setProperty("Ep",Ep);
-    pe->globalObject().setProperty("Do",Do);
 }
 
 QPointF sym(double df,double dh,QPointF p)
@@ -1519,6 +1431,8 @@ QColor nearest(QColor c, std::vector<QColor> & list)
     return nearest_color;
 }
 
+
+
 Err MainWindow::process(QStringList content)
 {
     transform.reset();
@@ -1527,6 +1441,7 @@ Err MainWindow::process(QStringList content)
     QSvgGenerator generator;
     //EpsPaintDevice generator;
     QPainter painter;
+    DrawTree drawtree;
 
     for(int i=0;i<content.size();i++)
     {
@@ -1536,56 +1451,7 @@ Err MainWindow::process(QStringList content)
         {
             //te_console->append(QString("(%1,%2)=%3 :").arg(i).arg(args.size()).arg(args[0].toLocal8Bit().data()));
 
-            if(args.size()==6 && args[0]==QString("SVG_LOAD"))//Ok
-            {
-                QRectF area(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]));
-                QSvgRenderer svg_renderer;
-                svg_renderer.load(args[5]);
-                svg_renderer.render(&painter,area);
-            }
-            else if(args.size()==6 && args[0]==QString("IMG_LOAD"))//Ok
-            {
-                QPointF Op(exp(args[1]),exp(args[2]));
-                QPointF Sp(exp(args[3]),exp(args[4]));
-                QPointF Cp=transform.map(Op+Sp/2);
-                QRectF area(Cp-Sp/2,Cp+Sp/2);
-                QImage img(args[5]);
-                painter.drawImage(area,img);
-            }
-            else if(args.size()>=8 && (args.size()-8)%3==0 && args[0]==QString("IMG_PIXEL"))//Ok
-            {
-                std::vector<QColor> colors;
-                colors.push_back(QColor(0,0,0));
-                colors.push_back(QColor(255,255,255));
-                for(int k=0;k<args.size()-8;k+=3)
-                {
-                    colors.push_back(QColor(exp(args[k+8]),exp(args[k+9]),exp(args[k+10])));
-                }
-
-                QPointF Op(exp(args[1]),exp(args[2]));
-                QPointF Sp(exp(args[3]),exp(args[4]));
-                QPointF Cp=transform.map(Op+Sp/2);
-                QRectF area( Cp-Sp/2 , Cp+Sp/2 );
-                QImage img(args[5]);
-                unsigned int dx=round(exp(args[6])),dy=round(exp(args[7]));
-
-                for(int i=0;i<dx;i++)
-                {
-                    for(int j=0;j<dy;j++)
-                    {
-                        painter.setBrush(nearest(getMoyPix(QRect(i*img.width()/dx,
-                                                                 j*img.height()/dy,
-                                                                 img.width()/dx,
-                                                                 img.height()/dy),
-                                                           img),colors));
-                        painter.drawRect(QRectF(i*area.width()/dx+area.x(),
-                                                j*area.height()/dy+area.y(),
-                                                area.width()/dx,
-                                                area.height()/dy));
-                    }
-                }
-            }
-            else if(args.size()==3 && args[0]==QString("SVG_BEGIN"))//Ok
+            if(args.size()==3 && args[0]==QString("SVG_BEGIN"))//Ok
             {
                 //SVG
                 double scale=generator.resolution()/25.4;
@@ -1611,6 +1477,8 @@ Err MainWindow::process(QStringList content)
             }
             else if(args.size()==1 && args[0]==QString("SVG_END"))//Ok
             {
+                drawtree.draw(painter);
+                drawtree.populate(w_tree);
                 painter.end();
             }
             else if(args.size()==6 && args[0]==QString("SVG_PEN"))//Ok
@@ -1625,7 +1493,7 @@ Err MainWindow::process(QStringList content)
                 else if (args[5]==QString("Dot")){pen.setStyle(Qt::DotLine);}
                 else {return Err(i,args[0]+QString(" : Type inconnu"));}
 
-                painter.setPen(pen);
+                drawtree.setPen(pen);
             }
             else if(args.size()==5 && args[0]==QString("SVG_BRUSH"))//Ok
             {
@@ -1635,7 +1503,7 @@ Err MainWindow::process(QStringList content)
                 else if (args[4]==QString("Solid")){brush.setStyle(Qt::SolidPattern);}
                 else {return Err(i,args[0]+QString(" : Type inconnu"));}
 
-                painter.setBrush(brush);
+                drawtree.setBrush(brush);
             }
             else if((args.size()==8 || args.size()==10) && args[0]==QString("DRAW_CIRCLE_CRENEAUX"))//Ok
             {
@@ -1654,7 +1522,7 @@ Err MainWindow::process(QStringList content)
                     draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),0,exp(args[8]),exp(args[9]));
                 }
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==9 && args[0]==QString("DRAW_ELLIPSE_CRENEAUX"))//Ok
             {
@@ -1665,7 +1533,7 @@ Err MainWindow::process(QStringList content)
                 path.moveTo(c+QPointF(ra,0));
                 draw_ellipseCreneaux(path,c,ra,rb,exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),0);
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()>=4 && args[0]==QString("DRAW_CIRCLE"))//Ok
             {
@@ -1677,7 +1545,7 @@ Err MainWindow::process(QStringList content)
                 else if(args.size()==5){path.moveTo(c+QPointF(r*cos(exp(args[4])*TO_RAD),-r*sin(exp(args[4])*TO_RAD)));path.arcTo(QRectF(c.x()-r,c.y()-r,2*r,2*r),exp(args[4]) ,360);}
                 else if(args.size()==6){path.moveTo(c+QPointF(r*cos(exp(args[4])*TO_RAD),-r*sin(exp(args[4])*TO_RAD)));path.arcTo(QRectF(c.x()-r,c.y()-r,2*r,2*r),exp(args[4]) ,exp(args[5]));}
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()>=5 && args[0]==QString("DRAW_ELLIPSE"))//Ok
             {
@@ -1689,7 +1557,7 @@ Err MainWindow::process(QStringList content)
                 else if(args.size()==6){path.moveTo(c+QPointF(ra*cos(exp(args[5])*TO_RAD),-rb*sin(exp(args[5])*TO_RAD)));path.arcTo(QRectF(c.x()-ra,c.y()-rb,2*ra,2*rb),exp(args[5]) ,360);}
                 else if(args.size()==7){path.moveTo(c+QPointF(ra*cos(exp(args[5])*TO_RAD),-rb*sin(exp(args[5])*TO_RAD)));path.arcTo(QRectF(c.x()-ra,c.y()-rb,2*ra,2*rb),exp(args[5]) ,exp(args[6]));}
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==5 && args[0]==QString("DRAW_CROSS"))
             {
@@ -1714,18 +1582,19 @@ Err MainWindow::process(QStringList content)
                 path.lineTo(QPointF(c.x()-A,c.y()-A-B));
                 path.lineTo(QPointF(c.x()-A,c.y()-A));
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==7 && args[0]==QString("DRAW_LINE_ROSACE"))//Ok
             {
-                painter.drawPath(transform.map(getRosaceElement(QLineF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]),exp(args[6]))));
+                QPainterPath path=getRosaceElement(QLineF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]),exp(args[6]));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==5 && args[0]==QString("DRAW_LINE"))//Ok
             {
                 QPainterPath path;
                 path.moveTo( QPointF(exp(args[1]),exp(args[2])) );
                 path.lineTo( QPointF(exp(args[3]),exp(args[4])) );
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()>=5 && args[0]==QString("DRAW_PATH"))//Ok
             {
@@ -1798,7 +1667,7 @@ Err MainWindow::process(QStringList content)
                         return Err(k,args[0]+QString(" : mauvais arguments (%1)").arg(args[k]));
                     }
                 }
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()>=5 && args[0]==QString("DRAW_PATH_R"))//Ok
             {
@@ -1881,7 +1750,7 @@ Err MainWindow::process(QStringList content)
                         return Err(k,args[0]+QString(" : mauvais arguments (%1)").arg(args[k]));
                     }
                 }
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()>=6 && args[0]==QString("DRAW_POLYGON"))//Ok
             {
@@ -1891,14 +1760,24 @@ Err MainWindow::process(QStringList content)
                 double dt=2*M_PI/n;
                 double t=exp(args[5])*M_PI/180.0;
 
-                QVector<QPointF> vpoints;
-                for(int j=0;j<n;j+=1)
+                QPainterPath path;
+                for(int j=0;j<=n;j+=1)
                 {
-                    vpoints.append(c+R*QPointF(cos(j*dt+t),sin(j*dt+t)));
+                    if(j==0)
+                    {
+                        path.moveTo( c+R*QPointF(cos(j*dt+t),sin(j*dt+t)) );
+                    }
+                    else if (j==n)
+                    {
+                        path.lineTo( c+R*QPointF(cos(t),sin(t)) );
+                    }
+                    else
+                    {
+                        path.lineTo( c+R*QPointF(cos(j*dt+t),sin(j*dt+t)) );
+                    }
                 }
 
-                QPolygonF polygon(vpoints);
-                painter.drawPolygon(transform.map(polygon));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==2 && args[0]==QString("DISP"))//Ok
             {
@@ -1931,28 +1810,84 @@ Err MainWindow::process(QStringList content)
             {
                 pe->globalObject().setProperty(args[1], exp(args[2]));
             }
+            else if(args.size()==2 && args[0]==QString("ENTITY"))//Ok
+            {
+
+                drawtree.addEntity(args[1]);
+            }
+            else if(args.size()==4 && args[0]==QString("ENTITY_COPY"))//Ok
+            {
+                QTransform t;
+                t.translate(exp(args[2]),exp(args[3]));
+                drawtree.copyEntity(args[1],t);
+            }
+            else if((args.size()==2 || args.size()==3) && args[0]==QString("ENTITY_BOUNDING_RECT"))//Ok
+            {
+                Entity * ptr=drawtree.findEntity(args[1]);
+                if(ptr)
+                {
+                    if(args.size()==2)
+                    {
+                        QRectF boundrect=ptr->calcBoundingRect();
+                        drawtree.addNode(boundrect,args[1]+QString(":bounding_rect"));
+                    }
+                    else if(args.size()==3)
+                    {
+                        int node_id=exp(args[2]);
+                        if(node_id<ptr->nodes.size())
+                        {
+                            QRectF boundrect=ptr->nodes[node_id].calcBoundingRect();
+                            drawtree.addNode(boundrect,args[1]+QString(":node%1:bounding_rect").arg(node_id));
+                        }
+                        else
+                        {
+                           return Err(i,args[0]);
+                        }
+                    }
+                }
+                else
+                {
+                    return Err(i,args[0]);
+                }
+            }
+            else if((args.size()==5) && args[0]==QString("ENTITY_UNION"))
+            {
+                Entity * ptrA=drawtree.findEntity(args[1]);
+                Entity * ptrB=drawtree.findEntity(args[3]);
+
+                if(ptrA && ptrB)
+                {
+                        int node_idA=exp(args[2]),node_idB=exp(args[4]);
+                        if(node_idA<ptrA->nodes.size() && node_idB<ptrB->nodes.size())
+                        {
+                            QPainterPath path_union=ptrA->nodes[node_idA].path.
+                            drawtree->addNode();
+                        }
+                        else
+                        {
+                           return Err(i,args[0]);
+                        }
+                    }
+                }
+                else
+                {
+                    return Err(i,args[0]);
+                }
+            }
             else if(args.size()==5 && args[0]==QString("DRAW_RECT"))//Ok
             {
-                //painter.drawRect( QRectF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])) );
-                //painter.drawLine( transform.map(QLineF(exp(args[1]),exp(args[2]),exp(args[1])+exp(args[3]),exp(args[2]) ) ));
-                //painter.drawLine( transform.map(QLineF(exp(args[1])+exp(args[3]),exp(args[2]),exp(args[1])+exp(args[3]),exp(args[2])+exp(args[4]) ) ));
-                //painter.drawLine( transform.map(QLineF(exp(args[1])+exp(args[3]),exp(args[2])+exp(args[4]),exp(args[1]),exp(args[2])+exp(args[4]) ) ));
-                //painter.drawLine( transform.map(QLineF(exp(args[1]),exp(args[2])+exp(args[4]),exp(args[1]),exp(args[2]) ) ));
-
-                QPainterPath path;
-                path.moveTo( QPointF(exp(args[1]),exp(args[2])) );
-                path.lineTo( QPointF(exp(args[1])+exp(args[3]),exp(args[2])) );
-                path.lineTo( QPointF(exp(args[1])+exp(args[3]),exp(args[2])+exp(args[4])) );
-                path.lineTo( QPointF(exp(args[1]),exp(args[2])+exp(args[4])) );
-                path.lineTo( QPointF(exp(args[1]),exp(args[2])) );
-                painter.drawPath(transform.map(path));
+                QRectF rect(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]));
+                drawtree.addNode(rect,args[0]);
             }
             else if(args.size()==6 && args[0]==QString("DRAW_RECT_ROUND"))//Ok
             {
-                painter.drawPath(transform.map(roundRectPath(QRectF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]))));
+                QPainterPath path=roundRectPath(QRectF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==6 && args[0]==QString("DRAW_PUZZLE"))//Ok
             {
+                drawtree.addEntity("Puzzle");
+
                 double x=exp(args[1]);
                 double y=exp(args[2]);
 
@@ -1966,18 +1901,18 @@ Err MainWindow::process(QStringList content)
                 {
                     for(int j=0;j<ny;j++)
                     {
-                        painter.drawPath(getPuzzleShape(QLine(x+i*sz,y+j*sz,x+i*sz,y+(j+1)*sz),rand()%2));
+                        drawtree.addNode(getPuzzleShape(QLine(x+i*sz,y+j*sz,x+i*sz,y+(j+1)*sz),rand()%2),"lines");
                     }
                 }
                 for(int i=1;i<ny;i++)
                 {
                     for(int j=0;j<nx;j++)
                     {
-                        painter.drawPath(getPuzzleShape(QLine(x+j*sz,y+i*sz,x+(j+1)*sz,y+i*sz),rand()%2));
+                        drawtree.addNode(getPuzzleShape(QLine(x+j*sz,y+i*sz,x+(j+1)*sz,y+i*sz),rand()%2),"lines");
                     }
                 }
 
-                painter.drawRect(QRectF(x,y,lx,ly));
+                drawtree.addNode(QRectF(x,y,lx,ly),"contour");
 
             }
             else if(args.size()==1 && args[0]==QString("HELP"))//Ok
@@ -1993,6 +1928,8 @@ Err MainWindow::process(QStringList content)
             }
             else if(args.size()==7 && args[0]==QString("DRAW_FLEX"))//Ok
             {
+                drawtree.addEntity("Flex");
+
                 double W=exp(args[5]);
                 double dL=exp(args[6]);
                 QPointF size(exp(args[3]),exp(args[4]));
@@ -2055,12 +1992,8 @@ Err MainWindow::process(QStringList content)
                 }
 
                 lines=sortLines(p1,lines);
-                painter.drawLines(lines);
 
-                //                for(int i=0;i<lines.size();i++)
-                //                {
-                //                    painter.drawText(lines[i].p1(),QString::number(i));
-                //                }
+                drawtree.addNode(lines,"lines");
             }
             else if((args.size()==9 || args.size()==10) && args[0]==QString("DRAW_LINE_CRENEAUX"))//Ok
             {
@@ -2086,7 +2019,7 @@ Err MainWindow::process(QStringList content)
                                       exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),exp(args[9]));
                 }
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==7 && args[0]==QString("DRAW_CLIP"))
             {
@@ -2115,7 +2048,7 @@ Err MainWindow::process(QStringList content)
                     path.moveTo(cp);
                     clipb(path,cp,u,v,E,dL);
                 }
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==15 && args[0]==QString("DRAW_RECT_CRENEAUX"))//Ok
             {
@@ -2147,7 +2080,7 @@ Err MainWindow::process(QStringList content)
                 draw_lineCreneaux(path,lineE,W,dL,exp(args[8]),modes[1]);
                 draw_lineCreneaux(path,lineN,W,dL,exp(args[9]),modes[2]);
                 draw_lineCreneaux(path,lineO,W,dL,exp(args[10]),modes[3]);
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==19 && args[0]==QString("DRAW_RECT_CRENEAUX"))//Ok
             {
@@ -2167,7 +2100,7 @@ Err MainWindow::process(QStringList content)
                 draw_lineCreneaux(path,lineE,exp(args[5]),exp(args[6]),exp(args[8]),exp(args[12]),exp(args[16]));
                 draw_lineCreneaux(path,lineN,exp(args[5]),exp(args[6]),exp(args[9]),exp(args[13]),exp(args[17]));
                 draw_lineCreneaux(path,lineO,exp(args[5]),exp(args[6]),exp(args[10]),exp(args[14]),exp(args[18]));
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==2 && args[0]==QString("LABEL"))//Ok
             {
@@ -2219,7 +2152,7 @@ Err MainWindow::process(QStringList content)
                 done_pattern.append(false);
 
                 QVector<QLineF> vlines=getIFS(seed,pattern,done_seed,done_pattern,exp(args[4]));
-                painter.drawLines(vlines);
+                drawtree.addNode(vlines,args[0]);
             }
             else if(args.size()==5 && args[0]==QString("FRACTALE_VON_KOCH"))
             {
@@ -2241,9 +2174,7 @@ Err MainWindow::process(QStringList content)
                 pattern.append(QLineF(0.5    ,0.2886  ,2.0/3.0,0));
                 pattern.append(QLineF(2.0/3.0,0  ,1      ,0));
 
-                QVector<QPointF> vpoints=makePolygon(getIFS(seed,pattern,exp(args[4])));
-                QPolygonF polygon(vpoints);
-                painter.drawPolygon(polygon);
+                drawtree.addNode(makePolygon(getIFS(seed,pattern,exp(args[4]))),args[0]);
             }
             else if(args.size()==5 && args[0]==QString("FRACTALE_SIERPINSKI"))
             {
@@ -2265,7 +2196,7 @@ Err MainWindow::process(QStringList content)
                 pattern.append(QLineF(0.5,0.0,1.0,0.0));
 
                 QVector<QLineF> vlines=getIFS(seed,pattern,exp(args[4]));
-                painter.drawLines(vlines);
+                drawtree.addNode(vlines,args[0]);
             }
             else if(args.size()==5 && args[0]==QString("FRACTALE_PYTHAGORE"))
             {
@@ -2283,7 +2214,7 @@ Err MainWindow::process(QStringList content)
                 pattern.append(QLineF(0.5,0.5,1.0,0.0));
 
                 QVector<QLineF> vlines=getIFS(seed,pattern,exp(args[4]));
-                painter.drawLines(vlines);
+                drawtree.addNode(vlines,args[0]);
             }
             else if(args.size()==5 && args[0]==QString("FRACTALE_DRAGON"))
             {
@@ -2301,7 +2232,7 @@ Err MainWindow::process(QStringList content)
                 pattern.append(QLineF(1.0,0.0,0.5,0.5));
 
                 QVector<QLineF> vlines=getIFS(seed,pattern,exp(args[4]));
-                painter.drawLines(vlines);
+                drawtree.addNode(vlines,args[0]);
             }
             else if (args.size()==4 && args[0]==QString("TRANSFORM_ROTATE"))
             {
@@ -2310,18 +2241,21 @@ Err MainWindow::process(QStringList content)
                 t.rotate(exp(args[3]));
                 t.translate(-exp(args[1]),-exp(args[2]));
                 transform*=t;
+                drawtree.setTransform(transform);
             }
             else if (args.size()==3 && args[0]==QString("TRANSFORM_TRANSLATE"))
             {
                 QTransform t;
                 t.translate(exp(args[1]),exp(args[2]));
                 transform*=t;
+                drawtree.setTransform(transform);
             }
             else if (args.size()==3 && args[0]==QString("TRANSFORM_SCALE"))
             {
                 QTransform t;
                 t.scale(exp(args[1]),exp(args[2]));
                 transform*=t;
+                drawtree.setTransform(transform);
             }
             else if (args.size()==3 && args[0]==QString("TEXT_FONT"))
             {
@@ -2344,7 +2278,7 @@ Err MainWindow::process(QStringList content)
                 {
                     path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),args[3].arg(exp(args[4])).arg(exp(args[5])));
                 }
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]+QString(":")+args[3]);
             }
             else if (args.size()==19 && args[0]==QString("PROJECT_OBJECT_MAP"))
             {
@@ -2364,54 +2298,45 @@ Err MainWindow::process(QStringList content)
 
                 if(!ok)return Err(i,args[0]);
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==8 && args[0]==QString("DRAW_GEAR"))
             {
                 QPainterPath path;
                 draw_gear( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
 
-                transform.translate(exp(args[1]),exp(args[2]));
-                painter.drawPath(transform.map(path));
-                transform.translate(-exp(args[1]),-exp(args[2]));
+                drawtree.getTransform().translate(exp(args[1]),exp(args[2]));
+                drawtree.addNode(path,args[0]);
+                drawtree.getTransform().translate(-exp(args[1]),-exp(args[2]));
             }
             else if(args.size()==8 && args[0]==QString("DRAW_GEAR_R"))
             {
                 QPainterPath path;
                 draw_gear_r( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
 
-                transform.translate(exp(args[1]),exp(args[2]));
-                painter.drawPath(transform.map(path));
-                transform.translate(-exp(args[1]),-exp(args[2]));
+                drawtree.getTransform().translate(exp(args[1]),exp(args[2]));
+                drawtree.addNode(path,args[0]);
+                drawtree.getTransform().translate(-exp(args[1]),-exp(args[2]));
             }
             else if(args.size()==7 && args[0]==QString("DRAW_GEAR_S"))
             {
                 QPainterPath path;
                 draw_gear_s( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
 
-                transform.translate(exp(args[1]),exp(args[2]));
-                painter.drawPath(transform.map(path));
-                transform.translate(-exp(args[1]),-exp(args[2]));
-            }
-            else if(args.size()==8 && args[0]==QString("CALC_BOBINE"))
-            {
-                calc_bobine(painter,
-                            exp(args[1]),
-                        exp(args[2]),
-                        exp(args[3]),
-                        exp(args[4]),
-                        exp(args[5]),
-                        exp(args[6]),
-                        args[7]);
+                drawtree.getTransform().translate(exp(args[1]),exp(args[2]));
+                drawtree.addNode(path,args[0]);
+                drawtree.getTransform().translate(-exp(args[1]),-exp(args[2]));
             }
             else if(args.size()==7 && args[0]==QString("DRAW_PENDULE"))
             {
-                draw_pendule(painter,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
+                QPainterPath path;
+                draw_pendule(path,exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==6 && args[0]==QString("DRAW_CIRCLE_TANGENT"))
             {
                 QPainterPath path=draw_circle_tangent(QLineF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]));
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else if(args.size()==10 && args[0]==QString("PLOT"))
             {
@@ -2423,7 +2348,7 @@ Err MainWindow::process(QStringList content)
 
                 if(!ok)return Err(i,args[0]);
 
-                painter.drawPath(transform.map(path));
+                drawtree.addNode(path,args[0]);
             }
             else
             {

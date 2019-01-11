@@ -28,7 +28,8 @@ SOURCES += \
     obj.cpp \
     displayer.cpp \
     codeeditor.cpp \
-    svgview.cpp
+    svgview.cpp \
+    drawtree.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -37,8 +38,9 @@ HEADERS += \
     drawable.h \
     displayer.h \
     codeeditor.h \
-    svgview.h
+    svgview.h \
+    drawtree.h
 
 FORMS +=
 
-INCLUDEPATH += C:/Eigen334
+INCLUDEPATH += D:/Eigen335
