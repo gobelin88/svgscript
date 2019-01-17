@@ -1841,7 +1841,7 @@ Err MainWindow::process(QStringList content)
                         }
                         else
                         {
-                           return Err(i,args[0]);
+                            return Err(i,args[0]);
                         }
                     }
                 }
@@ -1850,23 +1850,95 @@ Err MainWindow::process(QStringList content)
                     return Err(i,args[0]);
                 }
             }
-            else if((args.size()==5) && args[0]==QString("ENTITY_UNION"))
+            else if((args.size()==3) && args[0]==QString("ENTITY_REVERSE"))
+            {
+                Entity * ptr=drawtree.findEntity(args[1]);
+                if(ptr)
+                {
+                    int node_id=exp(args[2]);
+                    if(node_id<ptr->nodes.size())
+                    {
+                        ptr->nodes[node_id].path=ptr->nodes[node_id].path.toReversed();
+                    }
+                    else{return Err(i,args[0]);}
+                }
+                else{return Err(i,args[0]);}
+
+            }
+            else if((args.size()==8) && args[0]==QString("ENTITY_BOOL"))
             {
                 Entity * ptrA=drawtree.findEntity(args[1]);
                 Entity * ptrB=drawtree.findEntity(args[3]);
 
+                bool deleteflagA=(args[6]==QString("Delete"));
+                bool deleteflagB=(args[7]==QString("Delete"));
+
                 if(ptrA && ptrB)
                 {
-                        int node_idA=exp(args[2]),node_idB=exp(args[4]);
-                        if(node_idA<ptrA->nodes.size() && node_idB<ptrB->nodes.size())
+                    int node_idA=exp(args[2]),node_idB=exp(args[4]);
+                    std::cout<<node_idA<<" "<<node_idB<<std::endl;
+                    if(node_idA<ptrA->nodes.size() && node_idB<ptrB->nodes.size())
+                    {
+                        QPainterPath path_bool;
+                        if(args[5]==QString("Union"))
                         {
-                            QPainterPath path_union=ptrA->nodes[node_idA].path.
-                            drawtree->addNode();
+                            path_bool=ptrA->nodes[node_idA].getTransformedPath().united(ptrB->nodes[node_idB].getTransformedPath());
                         }
-                        else
+                        if(args[5]==QString("Intersection"))
                         {
-                           return Err(i,args[0]);
+                            path_bool=ptrA->nodes[node_idA].getTransformedPath().intersected(ptrB->nodes[node_idB].getTransformedPath());
                         }
+                        if(args[5]==QString("Substract"))
+                        {
+                            path_bool=ptrA->nodes[node_idA].getTransformedPath().subtracted(ptrB->nodes[node_idB].getTransformedPath());
+                        }
+                        if(args[5]==QString("SubstractI"))
+                        {
+                            path_bool=ptrA->nodes[node_idA].getTransformedPath().subtractedInverted(ptrB->nodes[node_idB].getTransformedPath());
+                        }
+                        drawtree.addNode(path_bool,QString("BOOL:%1").arg(args[5]));
+
+                        if(deleteflagA)ptrA->nodes.removeAt(node_idA);
+                        if(deleteflagB)ptrB->nodes.removeAt(node_idB);
+                    }
+                    else
+                    {
+                        return Err(i,args[0]);
+                    }
+
+                }
+                else
+                {
+                    return Err(i,args[0]);
+                }
+            }
+            else if((args.size()==3) && args[0]==QString("ENTITY_MERGE"))
+            {
+                Entity * ptr=drawtree.findEntity(args[1]);
+
+                bool deleteflag=(args[2]==QString("Delete"));
+
+                if(ptr && ptr->nodes.size()>0)
+                {
+                    if(deleteflag)
+                    {
+                        QPainterPath path_bool;
+                        while(ptr->nodes.size()>0)
+                        {
+                            path_bool=path_bool.united(ptr->nodes.last().getTransformedPath());
+                            ptr->nodes.removeLast();
+                        }
+                        drawtree.addNode(path_bool,QString("MERGE:%1").arg(args[1]));
+
+                    }
+                    else
+                    {
+                        QPainterPath path_bool=ptr->nodes[0].getTransformedPath();
+                        for(int i=1;i<ptr->nodes.size();i++)
+                        {
+                            path_bool=path_bool.united(ptr->nodes[i].getTransformedPath());
+                        }
+                        drawtree.addNode(path_bool,QString("MERGE:%1").arg(args[1]));
                     }
                 }
                 else

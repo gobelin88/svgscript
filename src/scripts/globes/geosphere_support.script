@@ -18,7 +18,7 @@ DEFINE sR D*4/15;//Rayon socle
 
 DEFINE E_aimant 2.8;//Epaisseur aimant
 DEFINE D_aimant 5.8;//Diametre aimant
-DEFINE M_aimant 3.7;//Marge entre le globe et le kikouillou
+DEFINE M_aimant 3.2;//Marge entre le globe et le kikouillou
 DEFINE Sp 10;//Epaisseur K
 DEFINE Lp -10+((D+dm)/2-Ri+margeD+gE/2-Sp/2-W/2-M_aimant);//Longueur K
 DEFINE Lpp (Sp+W*3);//Longueur Base Kikouillou
@@ -294,31 +294,41 @@ DRAW_RECT X+Rd-dW Y-W/2 2*dW W;
 DEFINE X X+185;
 DEFINE Rf (Re*Math.sin(step*7)-(dL/2+Wr)-dS);
 
+ENTITY Cercles;
 DRAW_CIRCLE X Y Rf+dW*2;//+2*W
 DRAW_CIRCLE X Y Rd;//+2*W
 DRAW_CIRCLE X Y Rd+2*dW;//+2*W
 
+ENTITY Sub1;
 DEFINE Idd 0;
 LABEL Idd;
 TRANSFORM_ROTATE X Y Idd*36;
-
 DRAW_PATH_R
 M X-(W-Wr)/2 Y+Rf+dW
 L W-Wr 0
 L Wr/2 2*dW
 L -W 0
 L Wr/2 -2*dW;
+TRANSFORM_ROTATE X Y -Idd*36;
+GOTO Idd 10;
 
+ENTITY_MERGE Sub1 Delete;
+
+ENTITY Sub2;
+DEFINE Iddd 0;
+LABEL Iddd;
+TRANSFORM_ROTATE X Y Iddd*36;
 DRAW_PATH_R
 M X-(W-Wr)/2 Y+Rd+dW
 L W-Wr 0
 L Wr/2 2*dW
 L -W 0
 L Wr/2 -2*dW;
+TRANSFORM_ROTATE X Y -Iddd*36;
+GOTO Iddd 10;
 
-
-TRANSFORM_ROTATE X Y -Idd*36;
-GOTO Idd 10;
-
+ENTITY_MERGE Sub2 Delete;
+ENTITY_BOOL Sub1 0 Cercles 0 SubstractI Delete Delete;
+ENTITY_BOOL Sub2 0 Cercles 1 SubstractI Delete Delete;
 
 SVG_END;

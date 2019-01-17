@@ -1,4 +1,4 @@
-#include "drawtree.h"
+﻿#include "drawtree.h"
 
 EntityNode::EntityNode(const QBrush & brush,
                        const QPen & pen,
@@ -31,6 +31,11 @@ void EntityNode::operator=(const EntityNode & other)
 QRectF EntityNode::calcBoundingRect()
 {
     return path.boundingRect();
+}
+
+QPainterPath EntityNode::getTransformedPath()
+{
+    return transform.map(path);
 }
 
 Entity::Entity(QString name)
@@ -247,6 +252,7 @@ void DrawTree::populate(QTreeWidget * w_tree)
 
             item_node->addChild(new QTreeWidgetItem((QTreeWidget*)0, QStringList(QString("pen: rvb:(%1 %2 %3) width:%4 style:%5").arg(pcolor.red()).arg(pcolor.green()).arg(pcolor.blue()).arg(pwidth).arg(pstyle))));
             item_node->addChild(new QTreeWidgetItem((QTreeWidget*)0, QStringList(QString("brush: rvb:(%1 %2 %3) style:%4").arg(bcolor.red()).arg(bcolor.green()).arg(bcolor.blue()).arg(bstyle))));
+            item_node->addChild(new QTreeWidgetItem((QTreeWidget*)0, QStringList(QString("path lenght:%1").arg(entities[i].nodes[j].path.length()))));
 
             item_entity->addChild(item_node);
         }

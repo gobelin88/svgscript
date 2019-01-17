@@ -28,9 +28,10 @@ DEFINE Y 133;
 
 DEFINE size 0.2;
 
-SVG_BEGIN 380 270;
+SVG_BEGIN 600 270;
 
 /////////////////////////////////////////////////////////////////////GLOBE
+ENTITY Projection;
 SVG_PEN 0 0 0 size Solid;
 PROJECT_OBJECT
 ./rc/icosaedre.obj 
@@ -42,6 +43,8 @@ D/3.80423
 SVG_PEN 255 0 0 size Solid;
 
 //Le C ARM------------------------------------------------------------------
+ENTITY CArm;
+
 DRAW_PATH
 M X-gD/2*Math.sin(gT/2*$pi/180) Y+gD/2*Math.cos(gT/2*$pi/180)
 C X Y gD/2 270-gT/2 180+gT
@@ -65,6 +68,9 @@ Lc -sR*2 0 W dL*1.5 3 3
 C sR 0 sR 180 -180;
 TRANSFORM_ROTATE X Y Obliquite;
 
+ENTITY_BOOL CArm 11 CArm 0 Union Delete Delete;
+
+ENTITY CArm_Socle;
 SVG_PEN 255 0 0 size Solid;
 DRAW_CIRCLE X Y sR+10;
 DRAW_RECT_CRENEAUX 
@@ -82,6 +88,8 @@ TRANSFORM_ROTATE X Y -M*45;
 GOTO M 8;
 
 //Les pattes du globe-------------------------------------------------------
+ENTITY CArm_Feet;
+
 DEFINE Rleg 10;
 SVG_PEN 0 0 255 size Solid;
 DRAW_PATH_R
@@ -153,7 +161,7 @@ GOTO N 8;
 
 //Les Kikouilloux--------------------------------------------------------------
 SVG_PEN 0 0 255 size Solid;
-
+ENTITY KikouillouxA;
 DRAW_PATH_R
 M X-Lpp/2 Y-gD/2-gE/2-W/2
 Lc Lpp 0 W Lpp 0 5
@@ -167,17 +175,16 @@ L -(Sp/2+mw) -Lp+W
 L 0 -W
 L -(W-mw) 0;
 
+ENTITY KikouillouxSubA;
 DRAW_RECT X-Lpp/2-W/2+Lpp/2 Y-gD/2-gE/2-W/2-W*2
 W Lp/2+W*2;
-
 DRAW_RECT 
 X-D_aimant/2 Y-gD/2-gE/2-W/2+Lp+Sp/2-E_aimant
 D_aimant E_aimant;
-DRAW_RECT 
-X-D_aimant/2 Y-gD/2-gE/2-W/2+Lp+Sp/2+M_aimant-3
-D_aimant E_aimant;
+ENTITY_MERGE KikouillouxSubA Delete;
+ENTITY_BOOL KikouillouxA 0 KikouillouxSubA 0 Substract Delete Delete;
 
-
+ENTITY KikouillouxB;
 DRAW_PATH_R
 M X-Lpp/2-50 Y-gD/2-gE/2-W/2
 Lc Lpp 0 W Lpp 0 5
@@ -191,14 +198,17 @@ L -(Sp/2+mw) -Lp+W
 L 0 -W
 L -(W-mw) 0;
 
+ENTITY KikouillouxSubB;
 DRAW_RECT X-Lpp/2-W/2+Lpp/2-50 Y-gD/2-gE/2-W/2+Lp/2
 W Lp/2+W;
-
 DRAW_RECT 
 X-D_aimant/2-50 Y-gD/2-gE/2-W/2+Lp+Sp/2-E_aimant
 D_aimant E_aimant;
+ENTITY_MERGE KikouillouxSubB Delete;
+ENTITY_BOOL KikouillouxB 0 KikouillouxSubB 0 Substract Delete Delete;
 
-//P!aques inter ----------------------------------------------------------------
+//Plaques inter ----------------------------------------------------------------
+ENTITY CArm_Inter;
 DEFINE delta D/2+margeD+gE;
 DEFINE J 0;
 LABEL J;
@@ -217,19 +227,18 @@ DRAW_CIRCLE X Y-delta-2.5*dL D_aimant/2+0.5;
 DRAW_CROSS X Y+delta+2.5*dL W-mw Lpp-W*2; 
 DRAW_CROSS X Y-delta-2.5*dL W-mw Lpp-W*2; 
 
+ENTITY_BOOL CArm_Inter 7 CArm_Inter 5 Union Delete Delete;
+ENTITY_BOOL CArm_Inter 6 CArm_Inter 5 Union Delete Delete;
+
+ENTITY Crosses;
 DRAW_CIRCLE X-5*dL Y+delta+2.5*dL 2*dL-0.5; 
 DRAW_CROSS X-5*dL Y+delta+2.5*dL W-mw Lpp; 
 
 DRAW_CIRCLE X-5*dL Y-delta-2.5*dL 2*dL-0.5; 
 DRAW_CROSS X-5*dL Y-delta-2.5*dL W-mw Lpp; 
 
-
-//Marquage Verif --------------------------------------------------------------
-SVG_PEN 0 128 0 size Dot;
-//DRAW_CIRCLE X Y D/2;
-//DRAW_CIRCLE X Y Ri;
-
 //COINS--------------------------------------------------------------------------------------
+ENTITY Corners;
 DEFINE X X+170;
 
 DEFINE s 4;
@@ -263,13 +272,15 @@ DEFINE dec (-(dHx+W-p*2)-(dL+s))/2;
 TRANSFORM_ROTATE X Y 360/N*I+180;
 SVG_PEN 255 0 0 size Solid;
 DRAW_RECT X-h/2-dL/2-s/2-p Y-W/2+mw/2 dL+s W-mw;
-SVG_PEN 0 255 0 size Solid;
-DRAW_RECT X-h/2-dL/2-s/2-p+dec-W/2-mw/2 Y-W/2+mw/2 dL+s W-mw;
 TRANSFORM_ROTATE X Y -360/N*I-180;
 
+GOTO I N;
 
+ENTITY CornersKi;//------------------------------------------------
+DEFINE III 0;
+LABEL III;
 SVG_PEN 255 0 0 size Solid;
-TRANSFORM_ROTATE X Y 360/N*I;
+TRANSFORM_ROTATE X Y 360/N*III;
 DRAW_PATH_R
 M X+h Y-W*2-16
 L -W+p*2 0
@@ -281,10 +292,36 @@ L -W/2 0
 L 0 dHy/2+W*3/4
 Lc Ux*(dHn-dL-Delta) -Uy*(dHn-dL-Delta) W-0.05 dL+0.05 0 3
 L Ux*(dL+Delta) -Uy*(dL+Delta);
-TRANSFORM_ROTATE X Y -360/N*I;
+TRANSFORM_ROTATE X Y -360/N*III;
+GOTO III N;
+ENTITY_MERGE CornersKi Delete;
 
-GOTO I N;
+ENTITY CornersSub;//------------------------------------------------
+DEFINE II 0;
+LABEL II;
+TRANSFORM_ROTATE X Y 360/N*II+180;
+SVG_PEN 0 255 0 size Solid;
+DRAW_RECT X-h/2-dL/2-s/2-p+dec-W/2-mw/2 Y-W/2+mw/2 dL+s W-mw;
+TRANSFORM_ROTATE X Y -360/N*II-180;
+GOTO II N;
+ENTITY_MERGE CornersSub Delete;
 
 DRAW_CIRCLE X Y h/2+p-(dL+s)*0.5-dec+W;
+ENTITY_BOOL CornersSub 1 CornersSub 0 Substract Delete Delete;
+
+
+//-------------------------------------------------------------------------------
+ENTITY_COPY Corners 60 0;ENTITY_COPY CornersSub 60 0;
+ENTITY_COPY Corners 60 60;ENTITY_COPY CornersSub 60 60;
+ENTITY_COPY Corners 60 -60;ENTITY_COPY CornersSub 60 -60;
+ENTITY_COPY Corners 120 0;ENTITY_COPY CornersSub 120 0;
+ENTITY_COPY Corners 120 60;ENTITY_COPY CornersSub 120 60;
+ENTITY_COPY Corners 120 -60;ENTITY_COPY CornersSub 120 -60;
+ENTITY_COPY Corners 180 0;ENTITY_COPY CornersSub 180 0;
+ENTITY_COPY Corners 180 60;ENTITY_COPY CornersSub 180 60;
+ENTITY_COPY Corners 180 -60;ENTITY_COPY CornersSub 180 -60;
+ENTITY_COPY Corners 240 0;ENTITY_COPY CornersSub 240 0;
+
+ENTITY_COPY CArm 400 0;
 
 SVG_END;

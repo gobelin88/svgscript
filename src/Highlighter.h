@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 43
+#define NB_CMD 46
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -23,6 +23,9 @@ static const Command CommandsList[NB_CMD]={
     Command("SVG_PEN",              QObject::tr("r v b size t:\n\nDéfinit la couleur (r,v,b), la taille (size) et le type (t) du crayon. (t) peut prendre les valeurs (None,Solid,Dash,Dot).")),
     Command("SVG_BRUSH",            QObject::tr("r v b t:\n\nDéfinit la couleur (r,v,b) et le type (t) du pinceau. (t) peut prendre les valeurs (None,Solid).")),
 
+    Command("ENTITY_REVERSE",       QObject::tr("entity node:\n\n Inverse le sens de parcours.")),
+    Command("ENTITY_MERGE",         QObject::tr("entity :\n\n Fusionne tous les nodes en un seul.")),
+    Command("ENTITY_BOOL",          QObject::tr("entityA nodeA entityB nodeB operation:\n\nOpération booléenne sur deux nodes A et B. operation=(Union,Intersection,Substract)")),
     Command("ENTITY",               QObject::tr("entity :\n\nDéfinit une entite.")),
     Command("ENTITY_COPY",          QObject::tr("entity tx ty:\n\nCopie une entite puis la translate de tx ty.")),
     Command("ENTITY_BOUNDING_RECT", QObject::tr("entity (node):\n\nAjoute le rectangle d'une entitée ou d'un noeud.")),

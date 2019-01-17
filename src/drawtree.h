@@ -1,4 +1,4 @@
-#include <QList>
+﻿#include <QList>
 #include <QPainter>
 #include <QPainterPath>
 #include <QTreeWidget>
@@ -21,6 +21,8 @@ public:
     void operator=(const EntityNode & other);
 
     QRectF calcBoundingRect();
+
+    QPainterPath getTransformedPath();
 
 public:
     QBrush brush;
