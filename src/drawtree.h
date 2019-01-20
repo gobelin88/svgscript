@@ -74,9 +74,9 @@ public:
     void setTransform(const QTransform & transform);
     QTransform & getTransform(){return transform;}
 
-    QPainterPath rectToPath(QRectF rect);
-    QPainterPath linesToPath(QVector<QLineF> lines);
-    QPainterPath polygonToPath(QPolygonF polygon);
+    static QPainterPath rectToPath(QRectF rect);
+    static QPainterPath linesToPath(QVector<QLineF> lines);
+    static QPainterPath polygonToPath(QPolygonF polygon);
 
     QStringList brushStyles();
     QStringList penStyles();

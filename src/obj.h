@@ -2,6 +2,7 @@
 #include <QGLWidget>
 #include <iostream>
 #include <drawable.h>
+#include <drawtree.h>
 
 #include <Eigen/Dense>
 #include <QOpenGLFunctions_1_0>

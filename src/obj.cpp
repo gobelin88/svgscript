@@ -290,40 +290,64 @@ void Object::getFaceGnomonic(QPainter & painter,
         Vector2d pB=getCoord2D(b,pts[f[(i+1)%f.size()]],bary);
         Vector2d pC=0.5*(pA+pB);
 
-        Vector2d pt(pA.x()+center.x(), pA.y()+center.y() );
-        Vector2d pt2(pC.x()+center.x(), pC.y()+center.y() );
-        poly.append(QPointF(pt.x(),pt.y()));
+        Vector2d pta(pA.x()+center.x(), pA.y()+center.y() );
+        Vector2d ptb(pB.x()+center.x(), pB.y()+center.y() );
+        Vector2d ptc(pC.x()+center.x(), pC.y()+center.y() );
+
         polyg.append(QPointF(pA.x(),pA.y()));
+        poly.append(QPointF(pta.x(),pta.y()));
 
         texCoord[id][i]=Vector2d((pA.x()-span.x())/span.width(),(pA.y()-span.y())/span.height());
 
-
-
-
-        QPolygonF poly_r;
         if(mode==0)
         {
+            QPolygonF poly_r;
             Vector2d u=pA.normalized();
             Vector2d v=Vector2d(-u.y(),u.x());
             Vector2d pr;
-            pr=-u*dA+pt-v*W/2;      poly_r.append( QPointF(pr.x(),pr.y()) );
-            pr=-u*dA+pt-u*dL-v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
-            pr=-u*dA+pt-u*dL+v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
-            pr=-u*dA+pt+v*W/2;      poly_r.append( QPointF(pr.x(),pr.y()) );
+            pr=-u*dA+pta-v*W/2;      poly_r.append( QPointF(pr.x(),pr.y()) );
+            pr=-u*dA+pta-u*dL-v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
+            pr=-u*dA+pta-u*dL+v*W/2; poly_r.append( QPointF(pr.x(),pr.y()) );
+            pr=-u*dA+pta+v*W/2;      poly_r.append( QPointF(pr.x(),pr.y()) );
             rect_list.append(poly_r);
         }
-        else
+        else if(mode==1)
         {
+            QPolygonF poly_r;
             Vector2d u=pC.normalized();
             Vector2d v=Vector2d(-u.y(),u.x());
             if(abs(u.dot(pB-pA))<0.0001)
             {
                 Vector2d pr;
-                pr=-u*dA+pt2-v*W/2;     poly_r.append( QPointF(pr.x(),pr.y()) );
-                pr=-u*dA+pt2-u*dL-v*W/2;poly_r.append( QPointF(pr.x(),pr.y()) );
-                pr=-u*dA+pt2-u*dL+v*W/2;poly_r.append( QPointF(pr.x(),pr.y()) );
-                pr=-u*dA+pt2+v*W/2;     poly_r.append( QPointF(pr.x(),pr.y()) );
+                pr=-u*dA+ptc-v*W/2;     poly_r.append( QPointF(pr.x(),pr.y()) );
+                pr=-u*dA+ptc-u*dL-v*W/2;poly_r.append( QPointF(pr.x(),pr.y()) );
+                pr=-u*dA+ptc-u*dL+v*W/2;poly_r.append( QPointF(pr.x(),pr.y()) );
+                pr=-u*dA+ptc+v*W/2;     poly_r.append( QPointF(pr.x(),pr.y()) );
                 rect_list.append(poly_r);
+            }
+        }
+        else if(mode==2)
+        {
+            Vector2d v=(pB-pA).normalized();
+            Vector2d u=Vector2d(-v.y(),v.x());
+
+            if(abs(pC.dot(v)/pC.norm())>0.0001)
+            {
+                QPolygonF poly_ra;
+                Vector2d pr;
+                pr=-v*dA+u*W/2+pta-v*(W/2+5);     poly_ra.append( QPointF(pr.x(),pr.y()) );
+                pr=-v*dA+u*W/2+pta-u*dL-v*(W/2+5);poly_ra.append( QPointF(pr.x(),pr.y()) );
+                pr=-v*dA+u*W/2+pta-u*dL+v*W/2;poly_ra.append( QPointF(pr.x(),pr.y()) );
+                pr=-v*dA+u*W/2+pta+v*W/2;     poly_ra.append( QPointF(pr.x(),pr.y()) );
+                rect_list.append(poly_ra);
+
+                QPolygonF poly_rb;
+                pr.setZero();
+                pr=v*dA+u*W/2+ptb-v*W/2;     poly_rb.append( QPointF(pr.x(),pr.y()) );
+                pr=v*dA+u*W/2+ptb-u*dL-v*W/2;poly_rb.append( QPointF(pr.x(),pr.y()) );
+                pr=v*dA+u*W/2+ptb-u*dL+v*(W/2+5);poly_rb.append( QPointF(pr.x(),pr.y()) );
+                pr=v*dA+u*W/2+ptb+v*(W/2+5);     poly_rb.append( QPointF(pr.x(),pr.y()) );
+                rect_list.append(poly_rb);
             }
         }
 
@@ -363,12 +387,12 @@ void Object::getFaceGnomonic(QPainter & painter,
         painter.drawEllipse(QPointF(center.x(),center.y()),radius,radius);
     }
 
-    painter.drawPolygon(poly);
-
+    QPainterPath path=DrawTree::polygonToPath(poly);
     for(int i=0;i<rect_list.size();i++)
     {
-        painter.drawPolygon(rect_list[i]);
+        path=path.subtracted(DrawTree::polygonToPath(rect_list[i]));
     }
+    painter.drawPath(path);
 
     //DRAW MERIDIENS--------------------------------------------------------------------------------
     if(meridiens)
@@ -427,22 +451,44 @@ void Object::getFaceGnomonic(QPainter & painter,
 
 void Object::drawProj(QPainterPath & path,QPointF c,int mode)
 {
+    int projaxe=mode%10;
+    int modelines=mode/10;
+
     for(int i=0;i<faces.size();i++)
     {
-        for(int j=0;j<faces[i].size();j++)
+        if(modelines==0)
         {
-            QPointF p;
-            if(mode==0)p=QPointF(pts[faces[i][j]][0],pts[faces[i][j]][1]);
-            else if(mode==1)p=QPointF(pts[faces[i][j]][1],pts[faces[i][j]][2]);
-            else if(mode==2)p=QPointF(pts[faces[i][j]][0],pts[faces[i][j]][2]);
+            for(int j=0;j<faces[i].size();j++)
+            {
+                QPointF p;
+                if(projaxe==0)p=QPointF(pts[faces[i][j]][0],pts[faces[i][j]][1]);
+                else if(projaxe==1)p=QPointF(pts[faces[i][j]][1],pts[faces[i][j]][2]);
+                else if(projaxe==2)p=QPointF(pts[faces[i][j]][0],pts[faces[i][j]][2]);
 
-            if(j==0)
-            {
-                path.moveTo(c+p);
+                if(j==0)
+                {
+                    path.moveTo(c+p);
+                }
+                else
+                {
+                    path.lineTo(c+p);
+                }
             }
-            else
+        }
+        else if(modelines==1)
+        {
+            if(faces[i].size()==4)
             {
-                path.lineTo(c+p);
+                int id1=0,id2=0;
+                if(projaxe==0){id1=0;id2=1;}
+                else if(projaxe==1){id1=1;id2=2;}
+                else if(projaxe==2){id1=0;id2=2;}
+                QPointF p1=QPointF(pts[faces[i][0]][id1],pts[faces[i][0]][id2]);
+                QPointF p2=QPointF(pts[faces[i][1]][id1],pts[faces[i][1]][id2]);
+                QPointF p3=QPointF(pts[faces[i][2]][id1],pts[faces[i][2]][id2]);
+                QPointF p4=QPointF(pts[faces[i][3]][id1],pts[faces[i][3]][id2]);
+                path.moveTo(c+(p1+p2)/2);path.lineTo(c+(p3+p4)/2);
+                path.moveTo(c+(p2+p3)/2);path.lineTo(c+(p4+p1)/2);
             }
         }
     }
@@ -507,7 +553,7 @@ void Object::getGnomonicAll(QImage map, int res, QPainter & painter, bool meridi
                             double dA,
                             double marge,int mode)
 {
-    int pack=(int)sqrt(faces.size())+1;
+    int pack=6;
 
     QPointF where(marge,marge);
 

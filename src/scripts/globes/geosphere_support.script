@@ -38,9 +38,16 @@ SVG_PEN 0 0 0 size Solid;
 PROJECT_OBJECT
 ./rc/geosphere.obj 
 X Y
-90 0 t
+90 0 t+90
 (D-dm)/2
 2;
+SVG_PEN 0 128 0 size Solid;
+PROJECT_OBJECT
+./rc/geosphere.obj 
+X Y
+90 0 t+90
+(D-dm)/2
+12;
 /////////////////////////////////////////////////////////////////////GIMBALE
 SVG_PEN 255 0 0 size Solid;
 
