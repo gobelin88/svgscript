@@ -5,13 +5,12 @@ DEFINE Theta Math.acos(-1/Math.sqrt(5)); //Angle dièdre
 DEFINE ra A/(2*Math.sin($pi/5));  //Rayon circonscrit
 DEFINE ap A/(2*Math.tan($pi/5));//Apothème (Rayon inscrit)
 
-DEFINE marge 0.5;
-
 DEFINE X marge+A/2;
 DEFINE Y ap+marge;
 
-DEFINE W 3;
-DEFINE dL 6/2;
+DEFINE dW 0.1;
+DEFINE W 3+dW;
+DEFINE dL 3+dW/2;
 
 DEFINE Ratio 1;
 
@@ -28,6 +27,7 @@ SVG_BEGIN 300 600;
 //03_geosphere
 
 HELP PROJECT_OBJECT_MAP;
+DISP (D-dm)/2;
 PROJECT_OBJECT_MAP 
 ./rc/geosphere.obj 
 ./rc/watermask.00001.png 
@@ -36,8 +36,8 @@ PROJECT_OBJECT_MAP
 1 20 20
 90 0 0
 2.95 60 61
-W dL -W/2
-marge+2
-2;
+W dL+0.1 0
+1
+0;
 
 SVG_END;

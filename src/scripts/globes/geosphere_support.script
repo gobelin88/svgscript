@@ -34,6 +34,7 @@ DEFINE size 0.2;
 SVG_BEGIN 380 270;
 
 /////////////////////////////////////////////////////////////////////GLOBE
+DISP (D-dm)/2;
 SVG_PEN 0 0 0 size Solid;
 PROJECT_OBJECT
 ./rc/geosphere.obj 
