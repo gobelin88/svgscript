@@ -1,0 +1,111 @@
+DEFINE X 150;
+DEFINE Y 85;
+
+//Params
+DEFINE M 5;//Marge
+SLIDE  N 10 6 16;//Nombre de tubes
+DEFINE N Math.round(N);
+SLIDE SizeTube 90 0 100;
+DEFINE SizeSep 20;
+DEFINE ratio 0.75;
+DEFINE r 10;//Rayon des tubes
+
+DEFINE R 70;//Rayon du tourniquet
+DEFINE W 3;//Epaisseur materiau
+DEFINE dL 10;//Taille des crans
+
+
+DEFINE dr 15;//Diametre roulement
+SLIDE beta 0.62 0 $pi/2;//Angle de l'echapement
+DEFINE SizeX (2*R*Math.cos(beta)+2*M);//
+DEFINE SizeY SizeTube+2*M;
+DEFINE SizeZ R*(Math.sin(beta)+1)+M;
+
+DEFINE h R*Math.cos($pi/N);
+DISP h;
+///////////////////////////////////////////////////////////////////
+SVG_BEGIN 600 330;
+
+SVG_PEN 255 0 0 0.5 Solid;
+
+DRAW_POLYGON X Y R N 0;
+
+DEFINE K 0;
+LABEL K;
+DEFINE alpha K*2*$pi/N;
+DISP alpha;
+DRAW_CIRCLE X+(R-r*1.5)*Math.cos(alpha) Y+(R-r*1.5)*Math.sin(alpha) r;
+
+TRANSFORM_ROTATE X Y 360/N*K+360/(2*N);
+DRAW_RECT X+h-W*2-W Y-W/2 W*2 W;
+DRAW_RECT X+h-SizeSep-W Y-W/2 W*2 W;
+TRANSFORM_ROTATE X Y -360/N*K-360/(2*N);
+
+GOTO K N;
+
+SVG_PEN 0 0 255 0.5 Solid;
+
+DRAW_LINE 
+X+R*Math.sin(beta) Y-R*Math.cos(beta)-M
+X+R*Math.sin(beta) Y+R*Math.cos(beta)+M;
+
+
+
+
+DEFINE Sx 20+2*W;
+DEFINE Sy 2*R+2*M;
+
+DRAW_RECT_CRENEAUX
+X+R+50-Sx-W Y-Sy/2-W
+SizeY+2*Sx+2*W Sy+2*W
+W dL
+-1 -1 -1 -1
+1 1 1 1;
+
+DRAW_RECT_CRENEAUX
+X+R+50-Sx+SizeY+2*Sx+W*2 Y-Sy/2-W
+SizeZ+2*W Sy+2*W
+W dL
+-1 -1 -1 -1
+1 2 1 2;
+
+DRAW_RECT_CRENEAUX
+X+R+50-Sx+SizeY+2*Sx+W*2 Y-Sy/2+Sy+2*W
+SizeZ+2*W SizeY+2*Sx+2*W
+W dL
+-1 -1 -1 -1
+2 2 2 2;
+
+
+SVG_PEN 0 128 0 0.5 Solid;
+
+DRAW_RECT_CRENEAUX 
+X+R+50-W Y-SizeX/2
+SizeY+2*W SizeX W dL
+-1 5 -1 5
+0 1 0 1;
+
+DRAW_CIRCLE X Y dr/2;
+DRAW_CIRCLE X Y 2;
+
+
+DRAW_RECT_CRENEAUX
+X-R-M-W Y-SizeX/2 
+SizeZ+2*W SizeX
+W dL
+-1 5 -1 5
+0 1 0 1;
+
+DRAW_PATH_R
+M X+R+50+SizeY/2-SizeTube*ratio/2 Y-SizeX/2+M
+Cl 0 W*2 W 2
+L 0 SizeSep-2*W*2
+Cl 0 W*2 W 2
+L SizeTube*ratio 0
+Cl 0 -W*2 W 2
+L 0 -SizeSep+2*W*2
+Cl 0 -W*2 W 2
+L -SizeTube*ratio 0;
+
+
+SVG_END;
