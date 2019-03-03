@@ -30,7 +30,7 @@ void EntityNode::operator=(const EntityNode & other)
 
 QRectF EntityNode::calcBoundingRect()
 {
-    return path.boundingRect();
+    return getTransformedPath().boundingRect();
 }
 
 QPainterPath EntityNode::getTransformedPath()
@@ -77,7 +77,7 @@ QRectF Entity::calcBoundingRect()
     QPainterPath all;
     for(int i=0;i<nodes.size();i++)
     {
-        all.addPath(this->nodes[i].path);
+        all.addPath(this->nodes[i].getTransformedPath());
     }
     return all.boundingRect();
 }
@@ -105,6 +105,27 @@ Entity * DrawTree::findEntity(QString name)
     return entity_ptr;
 }
 
+bool DrawTree::removeEntity(QString name)
+{
+    int index=-1;
+
+    Entity * entity_ptr=nullptr;
+    for(int i=0;i<entities.size();i++)
+    {
+        if(entities[i].name==name)
+        {
+            index=i;
+        }
+    }
+
+    if(index>0)
+    {
+        entities.removeAt(index);
+        return true;
+    }
+    return false;
+}
+
 bool DrawTree::copyEntity(QString name,QTransform t)
 {
     Entity * entity_ptr=findEntity(name);
@@ -114,6 +135,21 @@ bool DrawTree::copyEntity(QString name,QTransform t)
         Entity * entity_copy=entity_ptr->copy();
         entity_copy->move(t);
         this->entities.append(*entity_copy);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool DrawTree::moveEntity(QString name,QTransform t)
+{
+    Entity * entity_ptr=findEntity(name);
+
+    if(entity_ptr)
+    {
+        entity_ptr->move(t);
         return true;
     }
     else

@@ -3,7 +3,7 @@ DEFINE dL 6;
 
 
 DEFINE D 150;//Diametre de la sphere circonscrite
-DEFINE dm 6;
+DEFINE dm 7;
 DEFINE P (1+Math.sqrt(5))/2;//Nombre d'or
 DEFINE A D/Math.sqrt(2+P);//Coté 
 DEFINE Ri A/6*Math.sqrt(3)*(1+P);//Rayon de la sphere inscrite
@@ -18,7 +18,7 @@ DEFINE sR D*4/15;//Rayon socle
 
 DEFINE E_aimant 2.8;//Epaisseur aimant
 DEFINE D_aimant 5.8;//Diametre aimant
-DEFINE M_aimant 3.2;//Marge entre le globe et le kikouillou
+DEFINE M_aimant 2.6;//Marge entre le globe et le kikouillou -0.5mm
 DEFINE Sp 10;//Epaisseur K
 DEFINE Lp -10+((D+dm)/2-Ri+margeD+gE/2-Sp/2-W/2-M_aimant);//Longueur K
 DEFINE Lpp (Sp+W*3);//Longueur Base Kikouillou
@@ -39,16 +39,9 @@ SVG_PEN 0 0 0 size Solid;
 PROJECT_OBJECT
 ./rc/geosphere.obj 
 X Y
-90 0 t+90
+90 0 t
 (D-dm)/2
 2;
-SVG_PEN 0 128 0 size Solid;
-PROJECT_OBJECT
-./rc/geosphere.obj 
-X Y
-90 0 t+90
-(D-dm)/2
-12;
 /////////////////////////////////////////////////////////////////////GIMBALE
 SVG_PEN 255 0 0 size Solid;
 
@@ -164,7 +157,7 @@ GOTO N 8;
 
 //Les Kikouilloux--------------------------------------------------------------
 SVG_PEN 0 0 255 size Solid;
-DEFINE Wr 0.3;
+DEFINE Wr 0.1;
 
 DRAW_PATH_R
 M X-Lpp/2 Y-gD/2-gE/2-W/2
@@ -260,7 +253,7 @@ DEFINE alpha step*Id;
 DEFINE Ux (Math.sin(alpha+step)-Math.sin(alpha))/Norm;
 DEFINE Uy (Math.cos(alpha+step)-Math.cos(alpha))/Norm;
 
-DEFINE Wr 0.3;
+DEFINE Wr 0.1;
 
 SVG_PEN 0 128 0 size Solid;
 
@@ -303,9 +296,9 @@ DEFINE X X+185;
 DEFINE Rf (Re*Math.sin(step*7)-(dL/2+Wr)-dS);
 
 ENTITY Cercles;
-DRAW_CIRCLE X Y Rf+dW*2;//+2*W
-DRAW_CIRCLE X Y Rd;//+2*W
-DRAW_CIRCLE X Y Rd+2*dW;//+2*W
+DRAW_POLYGON X Y Rf+dW*2 10 18;//+2*W
+DRAW_CIRCLE X Y Rd-W;//+2*W
+DRAW_POLYGON X Y Rd+2*dW 10 18;//+2*W
 
 ENTITY Sub1;
 DEFINE Idd 0;

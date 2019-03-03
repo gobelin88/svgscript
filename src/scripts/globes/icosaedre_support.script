@@ -16,7 +16,7 @@ DEFINE sR D*4/15;//Rayon socle
 
 DEFINE E_aimant 2.8;//Epaisseur aimant
 DEFINE D_aimant 5.8;//Diametre aimant
-DEFINE M_aimant 3.2;//Marge entre le globe et le kikouillou
+DEFINE M_aimant 2.8;//Marge entre le globe et le kikouillou
 DEFINE Sp 10;//Epaisseur K
 DEFINE Lp (D/2-Ri+margeD+gE/2-Sp/2-W/2-M_aimant);//Longueur K
 DEFINE Lpp (Sp+W*3);//Longueur Base Kikouillou

@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 46
+#define NB_CMD 50
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -25,10 +25,15 @@ static const Command CommandsList[NB_CMD]={
 
     Command("ENTITY_REVERSE",       QObject::tr("entity node:\n\n Inverse le sens de parcours.")),
     Command("ENTITY_MERGE",         QObject::tr("entity :\n\n Fusionne tous les nodes en un seul.")),
-    Command("ENTITY_BOOL",          QObject::tr("entityA nodeA entityB nodeB operation:\n\nOpération booléenne sur deux nodes A et B. operation=(Union,Intersection,Substract)")),
+    Command("ENTITY_BOOL",          QObject::tr("entityA nodeA entityB nodeB delete/keep delete/keep operation:\n\nOpération booléenne sur deux nodes A et B. operation=(Union,Intersection,Substract,SubstractI) puis deux flags pour indiquer si on garde ou enleve les entités A et B.")),
     Command("ENTITY",               QObject::tr("entity :\n\nDéfinit une entite.")),
+    Command("ENTITY_REMOVE",        QObject::tr("entity :\n\nSupprime une entite.")),
     Command("ENTITY_COPY",          QObject::tr("entity tx ty:\n\nCopie une entite puis la translate de tx ty.")),
+    Command("ENTITY_TRANSLATE",     QObject::tr("entity tx ty:\n\nTranslate une entite de tx ty.")),
+    Command("ENTITY_ROTATE",        QObject::tr("entity cx cy alpha:\n\nTourne une entite de centre cx cy et d'angle alpha.")),
+    Command("ENTITY_SCALE",         QObject::tr("entity cx cy sx sy:\n\nModification de l'echelle d'une entite sx sy de centre (cx,cy).")),
     Command("ENTITY_BOUNDING_RECT", QObject::tr("entity (node):\n\nAjoute le rectangle d'une entitée ou d'un noeud.")),
+
     Command("DEFINE",               QObject::tr("var value :\n\nDéfinition ou modification d'une variable (var) avec la valeur (val).")),
     Command("SLIDE",                QObject::tr("var value min max:\n\nDéfinition ou modification d'une variable (var) avec la valeur (val) plus slider (min,max).")),
     Command("DISP",                 QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
@@ -37,7 +42,7 @@ static const Command CommandsList[NB_CMD]={
 
     Command("TRANSFORM_ROTATE",     QObject::tr("x y alpha:\n\n Rotation d'angle (alpha) autour de (x,y) de la transformation courante.")),
     Command("TRANSFORM_TRANSLATE",  QObject::tr("dx dy:\n\n Translation de vecteur (dx,dy) de la transformation courante.")),
-    Command("TRANSFORM_SCALE",      QObject::tr("sx sy:\n\n Facteur d'echelle sur la transformation courante.")),
+    Command("TRANSFORM_SCALE",      QObject::tr("cx cy sx sy:\n\n Facteur d'echelle sur la transformation courante de centre (cx,cy).")),
 
     Command("DRAW_FLEX",            QObject::tr("x y w h a b\n\nDessine une zone flexible rectangulaire dont le coin supérieur gauche est en (x,y) de largeur (w) et de hauteur (h). Puis dessine des traits de manière de longueur (b) et espacé de (a)")),
     Command("DRAW_PATH",            QObject::tr(" T ... \n\nDessine un chemin continu. la commande T peut prendre les valeurs (M,L,C,E) chacune doit être suivie des commandes appropriés \n\nM x y: Move to (x,y)\nL x y: Line to (x,y)\nC x y r a b:Circle to (x,y) de rayon (r) d'angle de depart (a) et d'angle (b)\nE x y ra rb a b:Ellipse to (x,y) de rayons (ra,rb) d'angle de depart (a) et d'angle (b)..")),
@@ -79,7 +84,7 @@ class Highlighter : public QSyntaxHighlighter
     Q_OBJECT
 
 public:
-    Highlighter(QTextDocument *parent = 0);
+    Highlighter(QTextDocument *parent = nullptr);
 
     void addSubRule(QString pattern,QTextCharFormat format)
     {

@@ -57,8 +57,10 @@ class DrawTree
 public:
     DrawTree();
 
+    bool moveEntity(QString name,QTransform t);
     bool copyEntity(QString name,QTransform t);
     Entity * findEntity(QString name);
+    bool removeEntity(QString name);
     void addEntity(QString name);
     void addNode(QPainterPath path,QString nodename);
     void addNode(QRectF rect,QString nodename);

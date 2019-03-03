@@ -6,7 +6,6 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    std::cout<<"ok"<<std::endl;
     w_svg=new SvgView();
 
     version=QString("v6.0");
@@ -1415,7 +1414,7 @@ QColor nearest(QColor c, std::vector<QColor> & list)
     unsigned int dist=255*255*3;
     QColor nearest_color=list[0];
 
-    for(int i=0;i<list.size();i++)
+    for(unsigned int i=0;i<list.size();i++)
     {
         int dr=list[i].red()-c.red();
         int dg=list[i].green()-c.green();
@@ -1812,8 +1811,11 @@ Err MainWindow::process(QStringList content)
             }
             else if(args.size()==2 && args[0]==QString("ENTITY"))//Ok
             {
-
                 drawtree.addEntity(args[1]);
+            }
+            else if(args.size()==2 && args[0]==QString("ENTITY_REMOVE"))//Ok
+            {
+                drawtree.removeEntity(args[1]);
             }
             else if(args.size()==4 && args[0]==QString("ENTITY_COPY"))//Ok
             {
@@ -1821,6 +1823,29 @@ Err MainWindow::process(QStringList content)
                 t.translate(exp(args[2]),exp(args[3]));
                 drawtree.copyEntity(args[1],t);
             }
+            else if(args.size()==4 && args[0]==QString("ENTITY_TRANSLATE"))//Ok
+            {
+                QTransform t;
+                t.translate(exp(args[2]),exp(args[3]));
+                drawtree.moveEntity(args[1],t);
+            }
+            else if(args.size()==4 && args[0]==QString("ENTITY_ROTATE"))//Ok
+            {
+                QTransform t;
+                t.translate(exp(args[2]),exp(args[3]));
+                t.rotate(exp(args[4]));
+                t.translate(-exp(args[2]),-exp(args[3]));
+                drawtree.moveEntity(args[1],t);
+            }
+            else if(args.size()==6 && args[0]==QString("ENTITY_SCALE"))//Ok
+            {
+                QTransform t;
+                t.translate(exp(args[2]),exp(args[3]));
+                t.scale(exp(args[4]),exp(args[5]));
+                t.translate(-exp(args[2]),-exp(args[3]));
+                drawtree.moveEntity(args[1],t);
+            }
+
             else if((args.size()==2 || args.size()==3) && args[0]==QString("ENTITY_BOUNDING_RECT"))//Ok
             {
                 Entity * ptr=drawtree.findEntity(args[1]);
@@ -2322,10 +2347,12 @@ Err MainWindow::process(QStringList content)
                 transform*=t;
                 drawtree.setTransform(transform);
             }
-            else if (args.size()==3 && args[0]==QString("TRANSFORM_SCALE"))
+            else if (args.size()==5 && args[0]==QString("TRANSFORM_SCALE"))
             {
                 QTransform t;
-                t.scale(exp(args[1]),exp(args[2]));
+                t.translate(exp(args[1]),exp(args[2]));
+                t.scale(exp(args[3]),exp(args[4]));
+                t.translate(-exp(args[1]),-exp(args[2]));
                 transform*=t;
                 drawtree.setTransform(transform);
             }
