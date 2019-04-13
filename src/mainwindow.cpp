@@ -1778,9 +1778,23 @@ Err MainWindow::process(QStringList content)
 
                 drawtree.addNode(path,args[0]);
             }
-            else if(args.size()==2 && args[0]==QString("DISP"))//Ok
+            else if(args.size()>=2 && args[0]==QString("DISP"))//Ok
             {
-                te_console->append(QString("%1=%2").arg(args[1]).arg(exp(args[1])));
+                QString str;
+                for(int i=1;i<args.size();i++)
+                {
+                    str+=QString("%1=%2 ").arg(args[i]).arg(exp(args[i]));
+                }
+                te_console->append(str);
+            }
+            else if(args.size()>=2 && args[0]==QString("DISPCSV"))//Ok
+            {
+                QString str;
+                for(int i=1;i<args.size();i++)
+                {
+                    str+=QString("%1;").arg(exp(args[i]));
+                }
+                te_console->append(str);
             }
             else if(args.size()==5 && args[0]==QString("SLIDE"))
             {

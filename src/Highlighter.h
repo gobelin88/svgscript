@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 50
+#define NB_CMD 51
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -37,6 +37,7 @@ static const Command CommandsList[NB_CMD]={
     Command("DEFINE",               QObject::tr("var value :\n\nDéfinition ou modification d'une variable (var) avec la valeur (val).")),
     Command("SLIDE",                QObject::tr("var value min max:\n\nDéfinition ou modification d'une variable (var) avec la valeur (val) plus slider (min,max).")),
     Command("DISP",                 QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
+    Command("DISPCSV",                 QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
     Command("LABEL",                QObject::tr("var:\n\nDéfinit une étiquette (var). voir GOTO.")),
     Command("GOTO",                 QObject::tr("var val:\n\nSe rend à l'étiquette (var) tant que (var) n'est pas égale à (val). voir LABEL.")),
 

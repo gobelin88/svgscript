@@ -34,6 +34,7 @@ DEFINE size 0.2;
 SVG_BEGIN 380 270;
 
 /////////////////////////////////////////////////////////////////////GLOBE
+ENTITY Globe;
 DISP (D-dm)/2;
 SVG_PEN 0 0 0 size Solid;
 PROJECT_OBJECT
@@ -46,13 +47,40 @@ X Y
 SVG_PEN 255 0 0 size Solid;
 
 //Le C ARM------------------------------------------------------------------
+ENTITY CArm;
 DRAW_PATH
 M X-gD/2*Math.sin(gT/2*$pi/180) Y+gD/2*Math.cos(gT/2*$pi/180)
 C X Y gD/2 270-gT/2 180+gT
 C X Y gD/2+gE 90+gT/2 -180-gT
 L X-gD/2*Math.sin(gT/2*$pi/180) Y+gD/2*Math.cos(gT/2*$pi/180);
 
+//Le pied----------------------------------------------------------------------
+ENTITY CArm_pied;
+
+
+DEFINE DeltaL 5*dL-2*W+W;
+DEFINE ratiodl 1.12;
+
+TRANSFORM_ROTATE X Y -Obliquite;
+DRAW_PATH_R 
+M X+sR Y+gD/2+sR+gE/2
+Lc -sR*2 0 W dL*ratiodl 5 3
+C sR 0 sR 180 -180;
+DRAW_RECT X-W/2+DeltaL/2 Y+gD/2+sR+gE/2 W -15;
+DRAW_RECT X-W/2-DeltaL/2 Y+gD/2+sR+gE/2 W -15;
+
+DRAW_RECT X-W/2+DeltaL/2 Y+gD/2+sR+gE/2-15 W -25;
+DRAW_RECT X-W/2-DeltaL/2 Y+gD/2+sR+gE/2-15 W -25;
+
+TRANSFORM_ROTATE X Y Obliquite;
+
+ENTITY_COPY CArm_pied 100 0;
+ENTITY_BOOL CArm 0 CArm_pied 0 Union Delete Delete;
+
+
+
 //Les trous du C Arm-------------------------------------------------------
+ENTITY CArm_trous;
 DEFINE K 0;
 LABEL K;
 TRANSFORM_ROTATE X Y -90+K*45;
@@ -61,22 +89,25 @@ DRAW_RECT X-W/2+gD/2+gE/2+mw/2 Y-dL/2-dL+ml/2 W-mw dL-ml;
 TRANSFORM_ROTATE X Y 90-K*45;
 GOTO K 5;
 
-//Le pied----------------------------------------------------------------------
-TRANSFORM_ROTATE X Y -Obliquite;
-DRAW_PATH_R 
-M X+sR Y+gD/2+sR+gE/2
-Lc -sR*2 0 W dL*1.5 3 3
-C sR 0 sR 180 -180;
-TRANSFORM_ROTATE X Y Obliquite;
-
+//---------------------------------------------------------
+ENTITY Socle;
 SVG_PEN 255 0 0 size Solid;
 DRAW_CIRCLE X Y sR+10;
 DRAW_RECT_CRENEAUX 
 X-2.5*dL+W Y-2*dL
 5*dL-2*W 4*dL
-W-mw dL*1.5 
-0 3 0 3
+W-mw dL*ratiodl 
+0 5 0 5
 -1 7 -1 7;
+
+TRANSFORM_ROTATE X Y 90;
+DRAW_RECT_CRENEAUX 
+X-2.5*dL+W Y-2*dL
+5*dL-2*W 4*dL
+W-mw dL*ratiodl 
+0 5 0 5
+-1 7 -1 7;
+TRANSFORM_ROTATE X Y -90;
 
 DEFINE M 0;
 LABEL M;
@@ -86,6 +117,7 @@ TRANSFORM_ROTATE X Y -M*45;
 GOTO M 8;
 
 //Les pattes du globe-------------------------------------------------------
+ENTITY Socle_pattes;
 DEFINE Rleg 10;
 SVG_PEN 0 0 255 size Solid;
 DRAW_PATH_R
@@ -159,6 +191,7 @@ GOTO N 8;
 SVG_PEN 0 0 255 size Solid;
 DEFINE Wr 0.1;
 
+ENTITY K1;
 DRAW_PATH_R
 M X-Lpp/2 Y-gD/2-gE/2-W/2
 Lc Lpp 0 W Lpp 0 5
@@ -173,31 +206,22 @@ L -(Sp/2+Wr+Wr/2) -Lp+W
 L Wr/2 0
 L 0 -W
 L -(W-Wr) 0;
+
+ENTITY_COPY K1 -50 0;
+
+ENTITY K1_sub1;
 DRAW_RECT X-Lpp/2-W/2+Lpp/2 Y-gD/2-gE/2-W/2-W*2
 W Lp/2+W*2;
-
 DRAW_RECT 
 X-D_aimant/2 Y-gD/2-gE/2-W/2+Lp+Sp/2-E_aimant
 D_aimant E_aimant;
-DRAW_RECT 
-X-D_aimant/2 Y-gD/2-gE/2-W/2+Lp+Sp/2+M_aimant-3
-D_aimant E_aimant;
+
+ENTITY_MERGE K1_sub1 Delete;
+
+ENTITY_BOOL K1 0 K1_sub1 0 Substract Delete Delete;
 
 
-DRAW_PATH_R
-M X-Lpp/2-50 Y-gD/2-gE/2-W/2
-Lc Lpp 0 W Lpp 0 5
-L -(W-Wr) 0
-L 0 W 
-L Wr/2 0
-L -(Wr+Wr/2) Lp-W
-C -Sp/2 0 Sp/2 0 -90
-L -W Sp/2
-C 0 -Sp/2 Sp/2 270 -90
-L -(Sp/2+Wr+Wr/2) -Lp+W
-L Wr/2 0
-L 0 -W
-L -(W-Wr) 0;
+ENTITY K2_sub1;
 DRAW_RECT X-Lpp/2-W/2+Lpp/2-50 Y-gD/2-gE/2-W/2+Lp/2
 W Lp/2+W;
 
@@ -205,11 +229,21 @@ DRAW_RECT
 X-D_aimant/2-50 Y-gD/2-gE/2-W/2+Lp+Sp/2-E_aimant
 D_aimant E_aimant;
 
+ENTITY_MERGE K2_sub1 Delete;
+
+ENTITY_BOOL K1_copy 0 K2_sub1 0 Substract Delete Delete;
+
+ENTITY_REMOVE K1;
+ENTITY_REMOVE K1_copy;
+
+
 //P!aques inter ----------------------------------------------------------------
+ENTITY Plaques;
 DEFINE delta D/2+margeD+gE;
 DEFINE J 0;
 LABEL J;
 TRANSFORM_ROTATE X Y -90+45*J;
+
 DRAW_RECT_CRENEAUX 
 X+delta Y-2*dL
 5*dL 4*dL
@@ -237,7 +271,7 @@ SVG_PEN 0 128 0 size Dot;
 //DRAW_CIRCLE X Y Ri;
 
 //SKELETTE--------------------------------------------------------------------------------------
-
+ENTITY Skelette;
 SVG_PEN 0 128 0 size Solid;
 
 
