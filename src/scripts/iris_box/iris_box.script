@@ -1,0 +1,114 @@
+DEFINE W 3;
+DEFINE dL 11;
+SLIDE Ra 50 25 100;
+DEFINE Rb Ra;
+DEFINE L 80;
+DEFINE Nb 6;
+DEFINE M 10;
+DEFINE X Ra*$pi+M*2;
+DEFINE Y Rb+M;
+DEFINE m -0.5;
+DEFINE mr 0.3;
+DEFINE D 2.8;
+DEFINE DD D/2+2;
+
+//---------------------------------------------------------------------------------------
+SVG_BEGIN Ra*$pi*2+2*M 400;
+SVG_PEN 255 0 0 0.5 Solid;
+DRAW_CIRCLE_CRENEAUX X Y Ra W dL Nb 1 7;
+
+
+DEFINE K -Nstep/2;
+LABEL K;
+DRAW_RECT_CRENEAUX  X+K*Lstep Y+Ra+M  Lstep  L
+W dL 
+1 -1 1 -1
+ 2 -1 2 0;
+GOTO K Nstep/2;
+
+DRAW_LINE 
+X+K*Lstep Y+Ra+M
+X+K*Lstep Y+Ra+M+L;
+
+//Iris----------------------------------------------------------------------------------
+SLIDE T 0 0 1;
+SLIDE b 200 10 200;
+SLIDE c 0 0 54;
+
+SVG_PEN 0 0 255 0.5 Solid;
+//DEFINE X X+Ra*2+M;
+DEFINE R Ra-7;
+DEFINE H 2*Math.sin($pi/5);
+DEFINE E R*(H-1)/H;
+
+DRAW_CIRCLE X Y R+m;
+
+DEFINE dtheta 180/$pi*Math.acos(((R-E)*(R-E)+(R-E)*(R-E)-R*R)/(2*(R-E)*(R-E)));
+
+DEFINE I 0;
+LABEL I;
+DEFINE ang 2*$pi/5*I;
+TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) c;
+DRAW_CIRCLE X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) R-E-m -360/5*I+180-dtheta dtheta;
+DRAW_CIRCLE X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) R-E -360/5*I+180-dtheta dtheta;
+DRAW_CIRCLE X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) DD;
+DRAW_POLYGON X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) 3/Math.sqrt(2) 4 ang*180/$pi+45;
+
+//DRAW_CIRCLE X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) E 234-360/5*I 126;
+DRAW_CIRCLE X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) E+m 234-360/5*I 126;
+
+TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) -c;
+GOTO I 5;
+
+SVG_PEN 0 255 0 0.5 Solid;
+DRAW_CIRCLE X Y R-E+D*1.75;
+DRAW_CIRCLE X Y R-E-D*1.75;
+
+DEFINE da 360/5-30;
+
+DEFINE J 0;
+LABEL J;
+
+TRANSFORM_ROTATE X Y 360/5*J-10;
+DEFINE ang 2*$pi/5*J;
+SVG_PEN 255 0 0 0.5 Solid;
+DRAW_PATH
+M X+(R-E)-D/2-mr Y
+C X+(R-E) Y D/2+mr 180 180
+C X Y (R-E)+D/2+mr 0 da
+C X+(R-E)*Math.cos(-da/180*$pi) Y+(R-E)*Math.sin(-da/180*$pi) D/2+mr da 180
+C X Y (R-E)-D/2-mr da -da;
+
+SVG_PEN 0 0 255 0.5 Solid;
+TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) c;
+//DRAW_CIRCLE X+(R-E) Y D/2;
+
+DEFINE F 0;
+LABEL F;
+
+//TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) -54*F/b;
+//DRAW_CIRCLE X+(R-E)*Math.cos(-da/180*$pi*F/b) Y+(R-E)*Math.sin(-da/180*$pi*F/b) D/2;
+//TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) 54*F/b;
+
+TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) -54*(b-F)/b;
+DRAW_CIRCLE X+(R-E)*Math.cos(-da/180*$pi*F/b) Y+(R-E)*Math.sin(-da/180*$pi*F/b) D/2+mr;
+TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) 54*(b-F)/b;
+
+GOTO F b+1;
+
+TRANSFORM_ROTATE  X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) -c;
+
+TRANSFORM_ROTATE X Y -360/5*J+10;
+
+SVG_PEN 255 0 0 0.5 Solid;
+
+DRAW_CIRCLE X+(R-E)*Math.cos(ang) Y+(R-E)*Math.sin(ang) DD;
+
+SVG_PEN 0 255 0 0.5 Solid;
+DRAW_CIRCLE X+(R-E)*Math.cos(ang-10/180*$pi-T*da/180*$pi) Y+(R-E)*Math.sin(ang-10/180*$pi-T*da/180*$pi) D/2;
+
+GOTO J 5;
+
+
+
+SVG_END;

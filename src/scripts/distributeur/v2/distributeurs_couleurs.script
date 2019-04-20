@@ -1,22 +1,22 @@
 DEFINE X 150;
-DEFINE Y 85;
+DEFINE Y 100;
 
 //Params
 DEFINE M 5;//Marge
 SLIDE  N 10 6 16;//Nombre de tubes
-DEFINE N Math.round(N);
-SLIDE SizeTube 90 0 100;
-DEFINE SizeSep 20;
-DEFINE ratio 0.75;
-DEFINE r 10;//Rayon des tubes
-
-DEFINE R 70;//Rayon du tourniquet
+DEFINE SizeTube 90;//Taille tubes
+DEFINE SizeBouchon 20;//Taille tubes
+DEFINE r 15;//Rayon des tubes
+DEFINE R 81;//Rayon du tourniquet
 DEFINE W 3;//Epaisseur materiau
 DEFINE dL 10;//Taille des crans
-
-
 DEFINE dr 15;//Diametre roulement
 SLIDE beta 0.62 0 $pi/2;//Angle de l'echapement
+DEFINE SizeSep 25;//Taille separateur
+DEFINE Dsep 5;
+DEFINE N Math.round(N);
+
+DEFINE ratio 1;
 DEFINE SizeX (2*R*Math.cos(beta)+2*M);//
 DEFINE SizeY SizeTube+2*M;
 DEFINE SizeZ R*(Math.sin(beta)+1)+M;
@@ -24,7 +24,7 @@ DEFINE SizeZ R*(Math.sin(beta)+1)+M;
 DEFINE h R*Math.cos($pi/N);
 DISP h;
 ///////////////////////////////////////////////////////////////////
-SVG_BEGIN 600 330;
+SVG_BEGIN 600 430;
 
 SVG_PEN 255 0 0 0.5 Solid;
 
@@ -37,8 +37,8 @@ DISP alpha;
 DRAW_CIRCLE X+(R-r*1.5)*Math.cos(alpha) Y+(R-r*1.5)*Math.sin(alpha) r;
 
 TRANSFORM_ROTATE X Y 360/N*K+360/(2*N);
-DRAW_RECT X+h-W*2-W Y-W/2 W*2 W;
-DRAW_RECT X+h-SizeSep-W Y-W/2 W*2 W;
+DRAW_RECT X+h-W*2-W-Dsep Y-W/2 W*2 W;
+DRAW_RECT X+h-SizeSep-W-Dsep Y-W/2 W*2 W;
 TRANSFORM_ROTATE X Y -360/N*K-360/(2*N);
 
 GOTO K N;
@@ -96,16 +96,24 @@ W dL
 -1 5 -1 5
 0 1 0 1;
 
+
 DRAW_PATH_R
 M X+R+50+SizeY/2-SizeTube*ratio/2 Y-SizeX/2+M
 Cl 0 W*2 W 2
 L 0 SizeSep-2*W*2
 Cl 0 W*2 W 2
-L SizeTube*ratio 0
+L SizeTube-SizeBouchon-W 0
 Cl 0 -W*2 W 2
 L 0 -SizeSep+2*W*2
 Cl 0 -W*2 W 2
-L -SizeTube*ratio 0;
+L -SizeTube+SizeBouchon+W 0;
 
+SVG_PEN 255 0 128 0.5 Solid;
+
+DRAW_RECT
+X+R+50+SizeY/2-SizeTube*ratio/2 Y-SizeX/2+M
+SizeTube-SizeBouchon 2*r;
+DRAW_RECT
+X+R+50+SizeY/2-SizeTube*ratio/2+SizeTube-SizeBouchon Y-SizeX/2+M SizeBouchon 2*r;
 
 SVG_END;

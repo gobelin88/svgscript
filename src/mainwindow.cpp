@@ -348,6 +348,7 @@ void MainWindow::draw_ellipseCreneaux(
         double E,
         double dL,
         int n,
+        int n2,
         int mode,
         double offset,
         double theta0,
@@ -367,6 +368,7 @@ void MainWindow::draw_ellipseCreneaux(
 
     double Lstep=getEllipticStepL(ra,rb,dL,N,dtheta);//Le/N;
 
+    pts.moveTo(center+QPointF(-ra,0));
     for(int i=0;i<N;i++)
     {
         double step=getEllipticStep(ra,rb,theta,Lstep);
@@ -376,81 +378,10 @@ void MainWindow::draw_ellipseCreneaux(
         theta+=step;
 
         QLineF line(center+QPointF(x1,y1),center+QPointF(x2,y2));
-        double L=line.length();
 
-        //Base
-        QPointF u(line.dx()/L,line.dy()/L);
-        QPointF v(u.y(),-u.x());
-        if(mode==2){v=-v;}
-
-        //Calcul du reste Epsilon
-        double Eps=(L-(dL))/2.0;
-
-        //On dessine tout cela
-        if(mode==2 || mode==1)
-        {
-            QPointF cp=line.p1();
-            if(i==0)pts.moveTo(cp);
-            cp+=u*Eps+offset*u; pts.lineTo(cp);
-            cp+=v*E;pts.lineTo(cp);
-            cp+=u*dL;pts.lineTo(cp);
-            cp-=v*E;pts.lineTo(cp);
-            cp+=u*Eps-offset*u;pts.lineTo(cp);
-        }
-        else if(mode==4)
-        {
-            QPointF cp=line.p1();
-            cp+=u*Eps+offset*u; pts.moveTo(cp);
-            cp+=v*E;pts.lineTo(cp);
-            cp+=u*dL;pts.lineTo(cp);
-            cp-=v*E;pts.lineTo(cp);
-            cp-=u*dL;pts.lineTo(cp);
-            cp+=u*dL;
-            cp+=u*Eps-offset*u;
-        }
-        else if(mode==3)
-        {
-            QPointF cp0=line.p1();
-            QPointF cp1=cp0+u*Eps+offset*u;
-            QPointF cp2=cp1+v*E;
-            QPointF cp3=cp2+u*dL;
-            QPointF cp4=cp3-v*E;
-            QPointF cp5=cp4+u*Eps-offset*u;
-            QPointF cp6=cp2-(u*Eps+offset*u);
-            QPointF cp7=cp3+u*Eps-offset*u;
-
-            if(i==0)
-            {
-                if(dtheta!=360)
-                {
-                    pts.moveTo(cp6);
-                }
-                else
-                {
-                    pts.moveTo(QPointF(cp6.x(),cp6.y()-2*(cp6.y()-center.y())));
-                }
-            }
-
-            pts.lineTo(cp6);
-            pts.lineTo(cp2);
-            pts.lineTo(cp1);
-            pts.lineTo(cp0);
-            //pts.lineTo(cp0);
-
-            pts.moveTo(cp5);
-            pts.lineTo(cp4);
-            pts.lineTo(cp3);
-            pts.lineTo(cp7);
-            //pts.lineTo(cp4);
-        }
+        draw_lineCreneaux(pts,line,E,dL,n2,mode,offset);
     }
 
-    if(mode==3)
-    {
-        pts.moveTo(center+QPointF( (ra+E*1.5)*cos(theta0*TO_RAD),
-                                   -(ra+E*1.5)*sin(theta0*TO_RAD) ));
-        pts.arcTo(QRectF(center.x()-(ra+E*1.5),center.y()-(rb+E*1.5),2*(ra+E*1.5),2*(rb+E*1.5)),theta0 ,dtheta);
-    }
 
     this->te_console->append(QString("DEFINE Lstep=%1  Nstep=%2").arg(Lstep).arg(N));
     pe->globalObject().setProperty("Lstep",Lstep);
@@ -1349,7 +1280,7 @@ QPointF sym(double df,double dh,QPointF p)
     return QPointF(p.x()*nb/na,p.y()*nb/na);
 }
 
-void MainWindow::draw_gear_r(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes)
+void MainWindow::draw_gear_r(QPainterPath & path, double m, int n, double alpha,double e)
 {
     double dp=m*n;                                          //Diametre primitif
     double db=dp*cos(alpha*TO_RAD);                         //Diamètre de base
@@ -1361,6 +1292,7 @@ void MainWindow::draw_gear_r(QPainterPath & path, double m, int n, double alpha,
     double rho=0.0;                                          //
     double delta_p=(sin(t)-t*cos(t));                        //
     double dalpha= p*180/(M_PI*dp)*0.5 + delta_p*180/(M_PI); //
+    double daxe=dh+e;
 
     QTransform rt,rt2;
     rt.rotate( -dalpha );
@@ -1565,7 +1497,7 @@ Err MainWindow::process(QStringList content)
 
                 drawtree.setBrush(brush);
             }
-            else if((args.size()==8 || args.size()==10) && args[0]==QString("DRAW_CIRCLE_CRENEAUX"))//Ok
+            else if((args.size()==9 || args.size()==11) && args[0]==QString("DRAW_CIRCLE_CRENEAUX"))//Ok
             {
                 QPainterPath path;
                 QPointF c= QPointF(exp(args[1]),exp(args[2]));
@@ -1573,25 +1505,25 @@ Err MainWindow::process(QStringList content)
 
                 path.moveTo(c+QPointF(r,0));
 
-                if(args.size()==8)
+                if(args.size()==9)
                 {
-                    draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+                    draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]));
                 }
                 else
                 {
-                    draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),0,exp(args[8]),exp(args[9]));
+                    draw_ellipseCreneaux(path,c,r,r,exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),0,exp(args[9]),exp(args[10]));
                 }
 
                 drawtree.addNode(path,args[0]);
             }
-            else if(args.size()==9 && args[0]==QString("DRAW_ELLIPSE_CRENEAUX"))//Ok
+            else if(args.size()==10 && args[0]==QString("DRAW_ELLIPSE_CRENEAUX"))//Ok
             {
                 QPainterPath path;
                 QPointF c= QPointF(exp(args[1]),exp(args[2]));
                 double ra=exp(args[3]),rb=exp(args[4]);
 
                 path.moveTo(c+QPointF(ra,0));
-                draw_ellipseCreneaux(path,c,ra,rb,exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),0);
+                draw_ellipseCreneaux(path,c,ra,rb,exp(args[5]),exp(args[6]),exp(args[7]),exp(args[8]),exp(args[9]),0);
 
                 drawtree.addNode(path,args[0]);
             }
@@ -2484,10 +2416,10 @@ Err MainWindow::process(QStringList content)
                 drawtree.addNode(path,args[0]);
                 drawtree.getTransform().translate(-exp(args[1]),-exp(args[2]));
             }
-            else if(args.size()==8 && args[0]==QString("DRAW_GEAR_R"))
+            else if(args.size()==7 && args[0]==QString("DRAW_GEAR_R"))
             {
                 QPainterPath path;
-                draw_gear_r( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]));
+                draw_gear_r( path,exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]));
 
                 drawtree.getTransform().translate(exp(args[1]),exp(args[2]));
                 drawtree.addNode(path,args[0]);
