@@ -6,22 +6,28 @@ DEFINE W 3;
 DEFINE dL 8;
 DEFINE M 3;
 
+SLIDE t 2 0 3;
+DEFINE t Math.round(t);
+DEFINE mode 2*t+1;
+DEFINE modep mode+1;
+
+DISP mode modep;
 
 SVG_BEGIN 1024 1024;
 
 SVG_PEN 255 0 0 0.5 Solid;
 
 ENTITY FaceBottom;
-DRAW_RECT_CRENEAUX X Y S S W dL N N N N 4 4 4 4;
+DRAW_RECT_CRENEAUX X Y S S W dL N N N N modep modep modep modep;
 ENTITY FaceTop;
-DRAW_RECT_CRENEAUX X+2*(S+M) Y S S W dL  N N N N 3 3 3 3;
+DRAW_RECT_CRENEAUX X+2*(S+M) Y S S W dL  N N N N mode mode mode mode;
 ENTITY FaceRight;
-DRAW_RECT_CRENEAUX X+(S+M) Y S S W dL N N N N 4 4 4 3;
+DRAW_RECT_CRENEAUX X+(S+M) Y S S W dL N N N N modep modep modep mode;
 ENTITY FaceLeft;
-DRAW_RECT_CRENEAUX X-(S+M) Y S S W dL  N N N N 4 3 4 4;
+DRAW_RECT_CRENEAUX X-(S+M) Y S S W dL  N N N N modep mode modep modep;
 ENTITY FaceUp;
-DRAW_RECT_CRENEAUX X Y+(S+M) S S W dL N N N N 3 3 4 3;
+DRAW_RECT_CRENEAUX X Y+(S+M) S S W dL N N N N mode mode modep mode;
 ENTITY FaceDown;
-DRAW_RECT_CRENEAUX X Y-(S+M) S S W dL  N N N N 4 3 3 3;
+DRAW_RECT_CRENEAUX X Y-(S+M) S S W dL  N N N N modep mode mode mode;
 
 SVG_END;

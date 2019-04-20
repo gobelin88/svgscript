@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     w_svg=new SvgView();
 
-    version=QString("v6.0");
+    version=QString("v6.1");
 
     pe=nullptr;
 
@@ -495,6 +495,26 @@ void clipb(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,d
     cp-=v*E+u*ra;pts.lineTo(cp);
 }
 
+void clipc(QPainterPath & pts,QPointF & cp,const QPointF & u,const QPointF & v,double E,double dL)
+{
+    double ra=0.28, rb=0;//32 trop serré
+    double dr=1.8,m=2*ra;
+
+    cp+=v*E-u*ra;pts.lineTo(cp);
+    cp+=v*rb+u*ra;pts.lineTo(cp);
+
+    cp+=u*dr;pts.lineTo(cp);
+    cp-=v*(rb+E);pts.lineTo(cp);
+    cp+=v*(rb+E)+u*m;pts.lineTo(cp);
+    cp+=u*(dL-2*(dr+m));pts.lineTo(cp);
+    cp-=v*(rb+E)-u*m;pts.lineTo(cp);
+    cp+=v*(rb+E);pts.lineTo(cp);
+    cp+=u*dr;pts.lineTo(cp);
+
+    cp-=v*rb-u*ra;pts.lineTo(cp);
+    cp-=v*E+u*ra;pts.lineTo(cp);
+}
+
 void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double E,double dL,int n,int mode,double offset)
 {
     if(mode==1 || mode==2)
@@ -618,7 +638,48 @@ void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double
 
         cp+=u*Eps-offset*u;pts.lineTo(cp);
     }
-    else if(mode==7)
+    else if(mode==7 || mode==8)
+    {
+        double L=line.length();
+
+        //Base
+        QPointF u(line.dx()/L,line.dy()/L);
+        QPointF v(u.y(),-u.x());
+
+
+        //Calcul du nombre de creneaux dans L
+        int N= (n==-1) ? round(L/(2.0*dL))-2.0 : n;
+        if(mode==8)N-=1;
+
+        //Calcul du reste Epsilon
+        double Eps=(mode==8)?(L-((N+1)*2.0*dL+dL))/2.0:(L-((N)*2.0*dL+dL))/2.0;
+
+        //On dessine tout cela
+        QPointF cp=line.p1();
+        cp+=u*Eps+offset*u;pts.lineTo(cp);
+        if(mode==8)
+        {
+            cp-=v*E;pts.lineTo(cp);
+            cp+=u*dL;pts.lineTo(cp);
+        }
+
+
+        for(int i=0;i<N;i++)
+        {
+            clipc(pts,cp,u,v,E,dL);
+            cp+=u*dL;pts.lineTo(cp);
+        }
+        clipc(pts,cp,u,v,E,dL);
+
+        if(mode==8)
+        {
+            cp+=u*dL;pts.lineTo(cp);
+            cp+=v*E;pts.lineTo(cp);
+        }
+
+        cp+=u*Eps-offset*u;pts.lineTo(cp);
+    }
+    else if(mode==9)
     {
         double L=line.length();
 
@@ -657,7 +718,7 @@ void MainWindow::draw_lineCreneaux(QPainterPath & pts,const QLineF & line,double
         cp+=u*dL;
         cp+=u*Eps-offset*u;pts.moveTo(cp);
     }
-    else if(mode==8 || mode==9)
+    else if(mode==10 || mode==11)
     {
         double L=line.length();
 
@@ -2176,10 +2237,11 @@ Err MainWindow::process(QStringList content)
                 double w=exp(args[3]);
                 double h=exp(args[4]);
 
-                if(modes[0]==1 || modes[0]==3){y+=W;h-=W;}
-                if(modes[1]==1 || modes[1]==3){w-=W;}
-                if(modes[2]==1 || modes[2]==3){h-=W;}
-                if(modes[3]==1 || modes[3]==3){x+=W;w-=W;}
+                if(modes[0]==1 || modes[0]==3 || modes[0]==5 || modes[0]==7){y+=W;h-=W;}
+                if(modes[1]==1 || modes[1]==3 || modes[1]==5 || modes[1]==7){w-=W;}
+                if(modes[2]==1 || modes[2]==3 || modes[2]==5 || modes[2]==7){h-=W;}
+                if(modes[3]==1 || modes[3]==3 || modes[3]==5 || modes[3]==7){x+=W;w-=W;}
+
 
                 QLineF lineS(x  ,y  ,x+w,y  );//Sud
                 QLineF lineO(x  ,y+h,x  ,y  );//Ouest
