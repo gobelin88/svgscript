@@ -7,16 +7,17 @@ DEFINE Nb 6;
 DEFINE M 10;
 DEFINE X Ra*$pi+M*2;
 DEFINE Y Rb+M;
-DEFINE m -0.5;
+DEFINE m -0.3;
 DEFINE mr 0.3;
 DEFINE D 2.8;
 DEFINE DD D/2+2;
 
 //---------------------------------------------------------------------------------------
+
+
 SVG_BEGIN Ra*$pi*2+2*M 400;
 SVG_PEN 255 0 0 0.5 Solid;
 DRAW_CIRCLE_CRENEAUX X Y Ra W dL Nb 1 7;
-
 
 DEFINE K -Nstep/2;
 LABEL K;
@@ -109,6 +110,58 @@ DRAW_CIRCLE X+(R-E)*Math.cos(ang-10/180*$pi-T*da/180*$pi) Y+(R-E)*Math.sin(ang-1
 
 GOTO J 5;
 
+//-----------------------------------------------------
+
+ENTITY Bague;
+DEFINE Nd 12;
+DEFINE Rd Ra-W;
+SVG_PEN 255 0 128 0.5 Solid;
+DRAW_CIRCLE X Y Rd;
+
+ENTITY BagueD;
+
+DEFINE Id 0;
+LABEL Id;
+
+DEFINE alpha Id/Nd*2*$pi; 
+DISP alpha;
+
+DRAW_CIRCLE
+X+(Rd+2.5*W)*Math.cos(alpha)
+Y+(Rd+2.5*W)*Math.sin(alpha)
+10;
+
+GOTO Id Nd;
+
+ENTITY_MERGE BagueD Delete;
+ENTITY_BOOL Bague 0 BagueD 0 Substract Delete Delete;
+
+DRAW_CIRCLE X Y R-E-D*1.75;
+
+//------------------------------------------------------------------------------
+ 
+DEFINE X X+Ra+10;
+
+DEFINE Id2 0;
+DEFINE Y Y-5*1.5*W;
+LABEL Id2;
+
+DEFINE Y Y+1.5*W;
+
+DISP Id2;
+
+DRAW_PATH_R
+M X Y
+L 0 W-m/2
+L W m/2
+L W -m/2
+L 0 -W+m/2
+L -W -m/2
+L -W m/2;
+DRAW_LINE X Y+(W-m/2)/2 X+W*2/3 Y+(W-m/2)/2;
+DRAW_LINE X+2*W Y+(W-m/2)/2 X+2*W-W*2/3 Y+(W-m/2)/2;
+
+GOTO Id2 10;
 
 
 SVG_END;
