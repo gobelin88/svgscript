@@ -1635,6 +1635,14 @@ Err MainWindow::process(QStringList content)
                         {
                             clipb(path,cp,u,-v,E,dL);
                         }
+                        if(mode==4)
+                        {
+                            clipc(path,cp,u,v,E,dL);
+                        }
+                        else if(mode==5)
+                        {
+                            clipc(path,cp,u,-v,E,dL);
+                        }
 
 
                         k+=7;
@@ -1710,13 +1718,21 @@ Err MainWindow::process(QStringList content)
                         {
                             clipb(path,cp,u,v,E,dL);
                         }
-                        if(mode==2)
+                        else if(mode==2)
                         {
-                            clip(path,cp,u,-v,E,dL);
+                            clipc(path,cp,u,v,E,dL);
                         }
                         else if(mode==3)
                         {
+                            clip(path,cp,u,-v,E,dL);
+                        }
+                        else if(mode==4)
+                        {
                             clipb(path,cp,u,-v,E,dL);
+                        }
+                        else if(mode==5)
+                        {
+                            clipc(path,cp,u,-v,E,dL);
                         }
 
 

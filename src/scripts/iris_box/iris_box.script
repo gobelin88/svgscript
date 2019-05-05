@@ -11,25 +11,86 @@ DEFINE m -0.3;
 DEFINE mr 0.3;
 DEFINE D 2.8;
 DEFINE DD D/2+2;
+DEFINE Ha Ra*Math.cos($pi/Nb);
 
 //---------------------------------------------------------------------------------------
 
 
-SVG_BEGIN Ra*$pi*2+2*M 400;
-SVG_PEN 255 0 0 0.5 Solid;
+SVG_BEGIN Ra*$pi*2+10*M 500;
+SVG_PEN 255 64 0 0.5 Solid;
 DRAW_CIRCLE_CRENEAUX X Y Ra W dL Nb 1 7;
+
+
+
+DEFINE Cx X;
+DEFINE Cy Y+Ra+M+L+M;
+DEFINE dS W*Math.sin($pi/Nb);
+
+
+DRAW_RECT Cx-Lstep/2 Cy+Ha dS W;
+
+DRAW_RECT Cx-Lstep/2 Cy+Ha Lstep W;
+DRAW_RECT Cx-Lstep/2+Lstep Cy+Ha W W;
+TRANSFORM_ROTATE Cx Cy 360/Nb;
+DRAW_RECT Cx-Lstep/2 Cy+Ha Lstep W;
+DRAW_RECT Cx-Lstep/2+Lstep Cy+Ha W W;
+TRANSFORM_ROTATE Cx Cy -360/Nb;
+
 
 DEFINE K -Nstep/2;
 LABEL K;
-DRAW_RECT_CRENEAUX  X+K*Lstep Y+Ra+M  Lstep  L
+
+SVG_PEN 255 64 0 1 Solid;
+/*DRAW_RECT_CRENEAUX  X+K*(Lstep+M/2)+M Y+Ra+M  Lstep  L
 W dL 
 1 -1 1 -1
- 2 -1 2 0;
+ 2 0 2 0;*/
+
+SVG_PEN 0 128 0 1 Solid;
+DRAW_PATH_R
+M  X+K*(Lstep+M/2)+M+dS Y+Ra+M
+Lc Lstep-dS*2 0 W dL 1 2
+L dS+W 0
+L 0 dL/2
+L -dS-W 0
+L 0 dL
+L dS 0
+L W 0
+L 0 dL/2
+L -W 0
+L 0 L-4*dL+W
+L -dS 0
+L 0 dL/2
+L dS 0
+Cl 0 dL W 2
+L -dS 0
+L 0 dL/2
+L -Lstep+dS 0
+L -W 0
+L 0 -dL/2
+L W 0
+L dS 0
+L 0 -dL
+L -dS 0
+L -W 0
+L 0 -dL/2
+L W 0
+L 0 -(L-4*dL+W)
+L dS 0
+L 0 -dL/2
+L -dS 0
+Cl 0 -dL W 2
+L dS 0
+L 0 -dL/2;
+
+DRAW_RECT X+K*(Lstep+M/2)+Lstep/2-dL/2-dL+M Y+Ra+M+L-W
+dL W;
+
+DRAW_RECT X+K*(Lstep+M/2)+Lstep/2-dL/2+dL+M Y+Ra+M+L-W
+dL W;
+
 GOTO K Nstep/2;
 
-DRAW_LINE 
-X+K*Lstep Y+Ra+M
-X+K*Lstep Y+Ra+M+L;
 
 //Iris----------------------------------------------------------------------------------
 SLIDE T 0 0 1;
@@ -139,6 +200,8 @@ ENTITY_BOOL Bague 0 BagueD 0 Substract Delete Delete;
 DRAW_CIRCLE X Y R-E-D*1.75;
 
 //------------------------------------------------------------------------------
+DEFINE m 0.3;
+SVG_PEN 255 64 0 0.3 Solid;
  
 DEFINE X X+Ra+10;
 
@@ -151,15 +214,14 @@ DEFINE Y Y+1.5*W;
 DISP Id2;
 
 DRAW_PATH_R
-M X Y
-L 0 W-m/2
+M X Y-m/2
+L 0 W+m
 L W m/2
 L W -m/2
-L 0 -W+m/2
+L 0 -W-m
 L -W -m/2
 L -W m/2;
-DRAW_LINE X Y+(W-m/2)/2 X+W*2/3 Y+(W-m/2)/2;
-DRAW_LINE X+2*W Y+(W-m/2)/2 X+2*W-W*2/3 Y+(W-m/2)/2;
+DRAW_LINE X+W/2 Y+W/2 X+W/2+W Y+W/2;
 
 GOTO Id2 10;
 
