@@ -125,9 +125,9 @@ private:
     QString comment(QString content);
 
     void draw_gear_s(QPainterPath & path, double m, int n, double daxe, int nb_spokes=-1);
-    void draw_gear_r(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes=-1);
+    void draw_gear_r(QPainterPath & path, double m, int n, double alpha, double e);
     void draw_gear(QPainterPath & path, double m, int n, double alpha, double daxe, int nb_spokes=-1);
-    void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center, double ra, double rb, double E, double dL, int n, int mode, double offset=0, double theta0=0, double dtheta=360);
+    void draw_ellipseCreneaux(QPainterPath & pts, const QPointF & center, double ra, double rb, double E, double dL, int n, int n2, int mode, double offset=0, double theta0=0, double dtheta=360);
     void draw_lineCreneaux(QPainterPath & pts, const QLineF & line, double E, double dL, int n, int mode, double offset=0);
     void draw_pendule(QPainterPath & path,double x,double y,double P,double theta,double daxe1,double daxe2);
     QPainterPath draw_circle_tangent(QLineF line,double alpha);

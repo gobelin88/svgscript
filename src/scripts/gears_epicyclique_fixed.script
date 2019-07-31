@@ -23,7 +23,7 @@ DEFINE Rotation rot*R+(nb%2)*180/nc;
 
 DISP Rotation;
 
-DRAW_GEAR_R 100 100 m nc alpha daxe*2 5;
+DRAW_GEAR_R 100 100 m nc alpha 8;
 
 TRANSFORM_ROTATE 100 100 -rot-Rotation;
 DRAW_GEAR 100 100 m na alpha daxe 6;
