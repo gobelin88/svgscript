@@ -221,8 +221,9 @@ void MainWindow::slot_run()
     engine.globalObject().setProperty("$todeg", 180.0/M_PI);
     pe=&engine;
 
+    QFileInfo info(current_file_path);
     QString raw_content=te_script->toPlainText();
-    QStringList content=comment(raw_content).split(";");
+    QStringList content=comment(raw_content).replace("$NAME",info.baseName()).split(";");
     QStringList content_lines=raw_content.split("\n");
 
 
@@ -1430,18 +1431,23 @@ QColor nearest(QColor c, std::vector<QColor> & list)
     return nearest_color;
 }
 
-
-
-Err MainWindow::process(QStringList content)
+QStringList MainWindow::loadScript(QString filename,bool & ok)
 {
-    transform.reset();
+    QFile file(filename);
+    QStringList content;
+    ok=false;
+    if( file.open(QIODevice::ReadOnly | QIODevice::Text) )
+    {
+        ok=true;
+        QFileInfo info(current_file_path);
+        content=comment(file.readAll()).replace("$NAME",info.baseName()).split(";");
+    }
 
-    te_console->clear();
-    QSvgGenerator generator;
-    //EpsPaintDevice generator;
-    QPainter painter;
-    DrawTree drawtree;
+    return content;
+}
 
+Err MainWindow::sub_process(QStringList content,QSvgGenerator & generator,QPainter & painter,DrawTree & drawtree)
+{
     for(int i=0;i<content.size();i++)
     {
         QStringList args=content[i].split(QRegExp(" |\n"),QString::SkipEmptyParts);
@@ -1787,6 +1793,43 @@ Err MainWindow::process(QStringList content)
                 }
                 te_console->append(str);
             }
+            else if(args.size()>=2 && args[0]==QString("DISPTEXT"))//Ok
+            {
+                if(args.size()==5)
+                {
+                    QString str=args[1].replace("#"," ").arg(exp(args[2])).arg(exp(args[3])).arg(exp(args[4]));
+                    te_console->append(str);
+                }
+                if(args.size()==4)
+                {
+                    QString str=args[1].replace("#"," ").arg(exp(args[2])).arg(exp(args[3]));
+                    te_console->append(str);
+                }
+                if(args.size()==3)
+                {
+                    QString str=args[1].replace("#"," ").arg(exp(args[2]));
+                    te_console->append(str);
+                }
+                else
+                {
+                    QString str=args[1];
+                    te_console->append(str.replace("#"," "));
+                }
+            }
+            else if(args.size()>=2 && args[0]==QString("SAVE_CONSOLE"))//Ok
+            {
+                QFile file(args[1]);
+                if(file.open(QIODevice::Text | QIODevice::WriteOnly))
+                {
+                    file.write(te_console->toPlainText().toUtf8());
+                    file.close();
+                }
+                else
+                {
+                    QMessageBox::critical(this,"Error","Unable to save console");
+                }
+            }
+
             else if(args.size()>=2 && args[0]==QString("DISPCSV"))//Ok
             {
                 QString str;
@@ -2217,6 +2260,7 @@ Err MainWindow::process(QStringList content)
             {
                 //Just a label
             }
+
             else if(args.size()==3 && args[0]==QString("GOTO"))//Ok
             {
                 for(int j=0;j<content.size();j++)
@@ -2237,6 +2281,26 @@ Err MainWindow::process(QStringList content)
                     }
                 }
             }
+
+            else if(args.size()==2 && args[0]==QString("SUB_SCRIPT"))//Ok
+            {
+                bool ok;
+                QStringList subcontent=loadScript(args[1],ok);
+                if(ok)
+                {
+                    Err err=this->sub_process(subcontent,generator,painter,drawtree);
+                    if(err.cmd!=QString("None"))
+                    {
+                        return err;
+                    }
+                }
+                else
+                {
+                    te_console->append(QString("Impossible d'ouvrir : %1").arg(args[1]));
+                    return Err(i,args[0]);
+                }
+            }
+
             else if(args.size()==7 && args[0]==QString("FRACTALE_TREE"))//Ok
             {
                 QVector<bool> done_seed;
@@ -2381,15 +2445,15 @@ Err MainWindow::process(QStringList content)
 
                 if(args.size()==4)
                 {
-                    path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),args[3]);
+                    path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),args[3].replace("$"," "));
                 }
                 else if(args.size()==5)
                 {
-                    path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),args[3].arg(exp(args[4])));
+                    path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),args[3].replace("$"," ").arg(exp(args[4])));
                 }
                 else if(args.size()==6)
                 {
-                    path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),args[3].arg(exp(args[4])).arg(exp(args[5])));
+                    path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),args[3].replace("$"," ").arg(exp(args[4])).arg(exp(args[5])));
                 }
                 drawtree.addNode(path,args[0]+QString(":")+args[3]);
             }
@@ -2470,7 +2534,19 @@ Err MainWindow::process(QStringList content)
         }
     }
 
-    return Err(0,"Pas d'erreur");
+    return Err(0,"None");
+}
+
+Err MainWindow::process(QStringList content)
+{
+    transform.reset();
+    te_console->clear();
+    QSvgGenerator generator;
+    //EpsPaintDevice generator;
+    QPainter painter;
+    DrawTree drawtree;
+
+    return sub_process(content,generator,painter,drawtree);
 }
 
 std::vector<std::vector<double>> MainWindow::loadCSV(QString filename)

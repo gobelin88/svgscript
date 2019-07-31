@@ -72,6 +72,8 @@ public:
 
     QScriptEngine *engine(){return pe;}
 
+    QStringList loadScript(QString filename,bool & ok);
+
 public slots:
     void slot_load();
     void slot_save();
@@ -107,6 +109,7 @@ private:
 
 
     Err process(QStringList content);
+    Err sub_process(QStringList content,QSvgGenerator & generator,QPainter & painter,DrawTree & drawtree);
 
     QString current_file_path;
     QString current_svg_path;
