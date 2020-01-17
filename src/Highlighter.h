@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 54
+#define NB_CMD 55
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -76,6 +76,7 @@ static const Command CommandsList[NB_CMD]={
     Command("SAVE_CONSOLE", QObject::tr("filename")),
 
     Command("SUB_SCRIPT", QObject::tr("sub script")),
+    Command("GET_EV_DC", QObject::tr("get electrizola wire coat thickness")),
 
     Command("PROJECT_OBJECT",       QObject::tr("file.obj x y euler_anglesx3 scale mode:\n\n Projection 2D d'un objet")),
     Command("PROJECT_OBJECT_MAP",   QObject::tr("file.obj mapfile.png res scale meridiens? Nlat Nlon euler_anglesx3 radius idpN idpS W dL dA marge:\n\n"))

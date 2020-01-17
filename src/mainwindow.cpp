@@ -64,10 +64,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     spliter->addWidget(w_svg);
 
     this->setCentralWidget(spliter);
-    te_script->setMinimumHeight(400);
-    leftWidget->setMaximumWidth(512);
-    w_svg->setMinimumSize(600,600);
-    spliter->setMinimumSize(800,600);
+    te_script->setBaseSize(400,600);
+    w_svg->setBaseSize(400,600);
+    //leftWidget->setMaximumWidth(512);
+    //w_svg->setMinimumSize(600,600);
+    //spliter->setMinimumSize(800,600);
 
     connect(pb_load,SIGNAL(clicked()),this,SLOT(slot_load()));
     connect(pb_save,SIGNAL(clicked()),this,SLOT(slot_save()));
@@ -2089,6 +2090,112 @@ Err MainWindow::sub_process(QStringList content,QSvgGenerator & generator,QPaint
             {
                 help(args[1]);
             }
+
+            else if(args.size()==2 && args[0]==QString("GET_EV_DC"))//Ok
+            {
+                double ev=0.0;
+                double dc=exp(args[1])*1e-3;
+
+                double tab_dc[37]=
+                {
+                    0.01,
+                    0.012,
+                    0.014,
+                    0.016,
+                    0.018,
+                    0.019,
+                    0.02,
+                    0.021,
+                    0.022,
+                    0.023,
+                    0.024,
+                    0.025,
+                    0.027,
+                    0.028,
+                    0.03,
+                    0.032,
+                    0.034,
+                    0.036,
+                    0.038,
+                    0.04,
+                    0.043,
+                    0.045,
+                    0.048,
+                    0.05,
+                    0.053,
+                    0.056,
+                    0.06,
+                    0.063,
+                    0.067,
+                    0.07,
+                    0.071,
+                    0.075,
+                    0.08,
+                    0.085,
+                    0.09,
+                    0.095,
+                    0.1
+                };
+
+                double tab_ev[37]=
+                {
+                    0.00135,
+                    0.001525,
+                    0.0019,
+                    0.00215,
+                    0.0022,
+                    0.002225,
+                    0.0025,
+                    0.003,
+                    0.003,
+                    0.003,
+                    0.003,
+                    0.0035,
+                    0.00375,
+                    0.004,
+                    0.0045,
+                    0.0045,
+                    0.005,
+                    0.00525,
+                    0.00525,
+                    0.0055,
+                    0.00575,
+                    0.00625,
+                    0.00675,
+                    0.0065,
+                    0.00675,
+                    0.007,
+                    0.0075,
+                    0.00825,
+                    0.00875,
+                    0.00875,
+                    0.00875,
+                    0.00925,
+                    0.00925,
+                    0.01,
+                    0.01,
+                    0.01025,
+                    0.0105
+                };
+
+                double dmin=DBL_MAX;
+                int nearest_dc_index=0;
+                for(int i=0;i<37;i++)
+                {
+                    double d=std::abs(dc-tab_dc[i]);
+                    if(d<dmin)
+                    {
+                        nearest_dc_index=i;
+                        dmin=d;
+                    }
+                }
+
+                dc=tab_dc[nearest_dc_index]*1e3;
+                ev=tab_ev[nearest_dc_index]*1e3;
+
+                sub_process((QString("DEFINE Ev %1;DEFINE Dc %2;").arg(ev).arg(dc)).split(";",QString::SkipEmptyParts),generator,painter,drawtree);
+            }
+
             else if(args.size()==7 && args[0]==QString("DRAW_FLEX"))//Ok
             {
                 drawtree.addEntity("Flex");
