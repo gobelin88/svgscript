@@ -9,9 +9,12 @@ Object::Object(QString filename, double scale, Vector3d euler_angles)
 
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
+        std::cout<<"open 0"<<std::endl;
+        unsigned int id=0;
         while(!file.atEnd())
         {
             QString line_str=file.readLine();
+            id++;
             QStringList line=line_str.split(QRegExp("[ |\n]"),QString::SkipEmptyParts);
             if(line.size()>0)
             {
@@ -25,19 +28,40 @@ Object::Object(QString filename, double scale, Vector3d euler_angles)
                     QList< Vector2d > new_face_tex_coord;
                     for(int i=1;i<line.size();i++)
                     {
-                        new_face.append( line[i].toInt()-1 );
-                        new_face_tex_coord.append( Vector2d (0,0) );
+                        QStringList args=line[i].split("/");
+                        if(args.size()>=1)
+                        {
+                            int idp=args[0].toInt()-1;
+                            if(idp<pts.size())
+                            {
+                                new_face.append( args[0].toInt()-1 );
+                                new_face_tex_coord.append( Vector2d (0,0) );
+                            }
+                            else
+                            {
+                                new_face.append( 0 );
+                                new_face_tex_coord.append( Vector2d (0,0) );
+                                std::cout<<"Invalid index f line : "<<id<<" index="<<idp<<std::endl;
+                            }
+                        }
+                        else
+                        {
+                            new_face.append( 0 );
+                            new_face_tex_coord.append( Vector2d (0,0) );
+                            std::cout<<"Error"<<std::endl;
+                        }
                     }
                     faces.append(new_face);
                     texCoord.append(new_face_tex_coord);
                 }
             }
         }
-
+        std::cout<<"open 2"<<std::endl;
         computeNormals();
 
         file.close();
         open=true;
+        std::cout<<"open 3"<<std::endl;
     }
     else
     {
@@ -117,14 +141,22 @@ void Object::computeNormals()
 {
     for(int i=0;i<faces.size();i++)
     {
-        Vector3d N=getBase(faces[i]).W;
-        if(N.dot(getBarycenter(faces[i]))>0)
+        if(faces[i].size()>=3)
         {
-            normals.push_back(N);
+            Vector3d N=getBase(faces[i]).W;
+
+            if(N.dot(getBarycenter(faces[i]))>0)
+            {
+                normals.push_back(N);
+            }
+            else
+            {
+                normals.push_back(-N);
+            }
         }
         else
         {
-            normals.push_back(-N);
+            normals.push_back(Vector3d(0,1,0));
         }
     }
 }
@@ -553,7 +585,7 @@ void Object::getGnomonicAll(QImage map, int res, QPainter & painter, bool meridi
                             double dA,
                             double marge,int mode)
 {
-    int pack=6;
+    int pack=10;
 
     QPointF where(marge,marge);
 

@@ -1,6 +1,7 @@
-DEFINE D 150;//Diametre de la sphere circonscrite
+
 DEFINE P (1+Math.sqrt(5))/2;//Nombre d'or
-DEFINE A D/(Math.sqrt(2+P));//Coté 
+DEFINE A 58;//Coté 
+DEFINE D A*(Math.sqrt(2+P));//Diametre de la sphere circonscrite
 DEFINE Theta Math.acos(-1/Math.sqrt(5)); //Angle dièdre
 DEFINE ra A/(2*Math.sin($pi/3));  //Rayon circonscrit
 DEFINE ap A/(2*Math.tan($pi/3));//Apothème (Rayon inscrit)
@@ -17,7 +18,7 @@ DEFINE dL 6;
 DEFINE Ratio 1;
 DISP Ratio;
 
-DEFINE Delta 5;
+DEFINE Delta 6;
 
 
 //--------------------------------------------------------------------------
@@ -35,7 +36,7 @@ PROJECT_OBJECT_MAP
 ./rc/watermask.00001.png 
 1024
 D/3.80423
-1 20 20
+1 16 16
 0 0 -36
 2.5 0 3
 W dL Delta
@@ -43,6 +44,7 @@ marge
 0;
 
 DISP D/3.80423;
+DISP A;
 
 SVG_PEN 0 255 0 0.5 Solid;
 DRAW_POLYGON X Y ra 3 90;

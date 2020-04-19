@@ -19,7 +19,7 @@ DEFINE dm 6;
 
 //--------------------------------------------------------------------------
 
-SVG_BEGIN 300 600;
+SVG_BEGIN 500 330;
 
 //00_cube
 //01_dodecaedre
@@ -31,13 +31,13 @@ DISP (D-dm)/2;
 PROJECT_OBJECT_MAP 
 ./rc/geosphere.obj 
 ./rc/watermask.00001.png 
-1024
+128
 (D-dm)/2
 1 20 20
 90 0 0
 2.95 60 61
-W dL+0.1 0
+W dL+0.1 -W/2
 1
-0;
+2;
 
 SVG_END;

@@ -764,34 +764,53 @@ QPainterPath getPuzzleShape(QLineF line,int mode)
     QPointF u(line.dx(),line.dy());
     QPointF v(u.y(),-u.x());
     QPointF center=(line.p1()+line.p2())/2.0;
-    if(mode==0)
-    {
-        v=-v;
-    }
-
     QPainterPath path;
 
-    QPointF dx=0.1*u;
-    QPointF dy=-0.1*v;
+    if(mode==0 || mode==1)
+    {
+        if(mode==0)
+        {
+            v=-v;
+        }
 
-    double r=0.11*L;
-    double d=0.07*L;
-    double s=5*r/L;
+        QPointF dx=0.1*u;
+        QPointF dy=-0.1*v;
 
-    QPointF p=line.p1(),pp;//1
-    path.moveTo(p);
-    pp=p;p=center-d/1.5*u/L;//2
-    path.cubicTo(pp+dx,p+dy,p);
-    pp=p;p=center-r*u/L+(d+r)*v/L;//3
-    path.cubicTo(pp-dy,p+dy*s,p);
-    pp=p;p=center+(d+2*r)*v/L;//4
-    path.cubicTo(pp-dy*s,p-dx*s,p);
-    pp=p;p=center+r*u/L+(d+r)*v/L;//5
-    path.cubicTo(pp+dx*s,p-dy*s,p);
-    pp=p;p=center+d/1.5*u/L;//6
-    path.cubicTo(pp+dy*s,p-dy,p);
-    pp=p;p=line.p2();//7
-    path.cubicTo(pp+dy,p-dx,p);
+        double r=0.11*L;
+        double d=0.07*L;
+        double s=5*r/L;
+
+        QPointF p=line.p1(),pp;//1
+        path.moveTo(p);
+        pp=p;p=center-d/1.5*u/L;//2
+        path.cubicTo(pp+dx,p+dy,p);
+        pp=p;p=center-r*u/L+(d+r)*v/L;//3
+        path.cubicTo(pp-dy,p+dy*s,p);
+        pp=p;p=center+(d+2*r)*v/L;//4
+        path.cubicTo(pp-dy*s,p-dx*s,p);
+        pp=p;p=center+r*u/L+(d+r)*v/L;//5
+        path.cubicTo(pp+dx*s,p-dy*s,p);
+        pp=p;p=center+d/1.5*u/L;//6
+        path.cubicTo(pp+dy*s,p-dy,p);
+        pp=p;p=line.p2();//7
+        path.cubicTo(pp+dy,p-dx,p);
+    }
+    else if(mode==2 || mode==3)
+    {
+        v=v*(1.0/L);
+
+        if(mode==2)
+        {
+            v=-v;
+        }
+
+        QPointF p=line.p1(); path.moveTo(p);
+        p+=u/3;              path.lineTo(p);
+        p+=v*2.5;            path.lineTo(p);
+        p+=u/3;              path.lineTo(p);
+        p-=v*2.5;            path.lineTo(p);
+        p+=u/3;              path.lineTo(p);
+    }
 
     return path;
 }
@@ -938,6 +957,19 @@ QVector<QLineF> sortLines(QPointF p,QVector<QLineF> lines)
     return lines_sorted;
 }
 
+void arcToN(QPainterPath & path,QRectF rect,double a,double b,int n)
+{
+    double rx=rect.width()/2;
+    double ry=rect.height()/2;
+    double cx=rect.x()+rx,cy=rect.y()+ry;
+
+    for(int k=0;k<n;k++)
+    {
+        double alpha=-(a+b*k/n)*TO_RAD;
+        path.lineTo(cx+rx*cos(alpha),cy+ry*sin(alpha));
+    }
+}
+
 QPainterPath roundRectPath(const QRectF &rect,double radius)
 {
     double diam = 2 * radius;
@@ -945,15 +977,20 @@ QPainterPath roundRectPath(const QRectF &rect,double radius)
     double x1, y1, x2, y2;
     rect.getCoords(&x1, &y1, &x2, &y2);
 
+    int N=20;
     QPainterPath path;
     path.moveTo(x2, y1 + radius);
-    path.arcTo(QRectF(x2 - diam, y1, diam, diam), 0.0, +90.0);
+    //path.arcTo(QRectF(x2 - diam, y1, diam, diam), 0.0, +90.0);
+    arcToN(path,QRectF(x2 - diam, y1, diam, diam), 0.0, +90.0,N);
     path.lineTo(x1 + radius, y1);
-    path.arcTo(QRectF(x1, y1, diam, diam), 90.0, +90.0);
+    //path.arcTo(QRectF(x1, y1, diam, diam), 90.0, +90.0);
+    arcToN(path,QRectF(x1, y1, diam, diam),90, +90.0,N);
     path.lineTo(x1, y2 - radius);
-    path.arcTo(QRectF(x1, y2 - diam, diam, diam), 180.0, +90.0);
+    //path.arcTo(QRectF(x1, y2 - diam, diam, diam), 180.0, +90.0);
+    arcToN(path,QRectF(x1, y2 - diam, diam, diam), 180.0, +90.0,N);
     path.lineTo(x1 + radius, y2);
-    path.arcTo(QRectF(x2 - diam, y2 - diam, diam, diam), 270.0, +90.0);
+    //path.arcTo(QRectF(x2 - diam, y2 - diam, diam, diam), 270.0, +90.0);
+    arcToN(path,QRectF(x2 - diam, y2 - diam, diam, diam), 270.0, +90.0,N);
     path.closeSubpath();
     return path;
 }
@@ -2004,7 +2041,7 @@ Err MainWindow::process(QStringList content)
                 QPainterPath path=roundRectPath(QRectF(exp(args[1]),exp(args[2]),exp(args[3]),exp(args[4])),exp(args[5]));
                 drawtree.addNode(path,args[0]);
             }
-            else if(args.size()==6 && args[0]==QString("DRAW_PUZZLE"))//Ok
+            else if(args.size()==7 && args[0]==QString("DRAW_PUZZLE"))//Ok
             {
                 drawtree.addEntity("Puzzle");
 
@@ -2014,6 +2051,8 @@ Err MainWindow::process(QStringList content)
                 int nx=exp(args[3]);
                 int ny=exp(args[4]);
                 double sz=exp(args[5]);
+                int mode=exp(args[6]);
+
                 double lx=nx*sz;
                 double ly=ny*sz;
 
@@ -2021,14 +2060,14 @@ Err MainWindow::process(QStringList content)
                 {
                     for(int j=0;j<ny;j++)
                     {
-                        drawtree.addNode(getPuzzleShape(QLine(x+i*sz,y+j*sz,x+i*sz,y+(j+1)*sz),rand()%2),"lines");
+                        drawtree.addNode(getPuzzleShape(QLine(x+i*sz,y+j*sz,x+i*sz,y+(j+1)*sz),rand()%2+2*mode),"lines");
                     }
                 }
                 for(int i=1;i<ny;i++)
                 {
                     for(int j=0;j<nx;j++)
                     {
-                        drawtree.addNode(getPuzzleShape(QLine(x+j*sz,y+i*sz,x+(j+1)*sz,y+i*sz),rand()%2),"lines");
+                        drawtree.addNode(getPuzzleShape(QLine(x+j*sz,y+i*sz,x+(j+1)*sz,y+i*sz),rand()%2+2*mode),"lines");
                     }
                 }
 
@@ -2403,6 +2442,23 @@ Err MainWindow::process(QStringList content)
                 }
                 drawtree.addNode(path,args[0]+QString(":")+args[3]);
             }
+            else if (args.size()==4 && args[0]==QString("TEXTC"))
+            {
+                QPainterPath path;
+
+                unsigned int id=((int)exp(args[3]))%26;
+
+                QString tab[26]={"A","B","C","D","E","F","G","H","I",
+                               "J","K","L","M","N","O","P","Q","R",
+                               "S","T","U","V","W","X","Y","Z"};
+
+                if(args.size()==4)
+                {
+                    path.addText(QPointF(exp(args[1]),exp(args[2])),painter.font(),tab[id]);
+                }
+
+                drawtree.addNode(path,args[0]+QString(":")+args[3]);
+            }
             else if (args.size()==19 && args[0]==QString("PROJECT_OBJECT_MAP"))
             {
                 bool ok=calcGnomonicProjection(painter,args[1],args[2],exp(args[3]),exp(args[4]),exp(args[5]),exp(args[6]),exp(args[7]),
@@ -2588,4 +2644,9 @@ void MainWindow::search()
     }
 
     highlighter_script->rehighlight();
+}
+
+QPainterPath convertImage(QImage image,double threshold)
+{
+
 }
