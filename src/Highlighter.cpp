@@ -38,7 +38,7 @@ Highlighter::Highlighter(QTextDocument *parent)
     subkeywordPatterns <<"\\bUnion\\b"<<"\\bIntersection\\b"<<"\\bSubstract\\b"
                        <<"\\bDelete\\b"<<"\\bKeep\\b"
                        <<"\\bNone\\b"<< "\\bSolid\\b"<< "\\bDash\\b" << "\\bDot\\b"<<"\\bMath\\b"
-                       <<"\\bpi\\b"<< "\\btorad\\b"<< "\\btodeg\\b"
+                       <<"\\bpi\\b"<< "\\btorad\\b"<< "\\btodeg\\b"<< "\\bNAME\\b"
                        <<"\\bArial\\b"<<"\\bHelvetica\\b"<<"\\bTimes\\b"<<"\\bRoman\\b"<<"\\bCourier\\b";
 
     foreach (const QString &pattern, subkeywordPatterns) {

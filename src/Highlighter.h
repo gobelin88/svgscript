@@ -14,7 +14,7 @@ struct Command
     QString help;
 };
 
-#define NB_CMD 51
+#define NB_CMD 55
 static const Command CommandsList[NB_CMD]={
     Command("HELP",                 QObject::tr("Lol")),
 
@@ -37,7 +37,8 @@ static const Command CommandsList[NB_CMD]={
     Command("DEFINE",               QObject::tr("var value :\n\nDéfinition ou modification d'une variable (var) avec la valeur (val).")),
     Command("SLIDE",                QObject::tr("var value min max:\n\nDéfinition ou modification d'une variable (var) avec la valeur (val) plus slider (min,max).")),
     Command("DISP",                 QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
-    Command("DISPCSV",                 QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
+    Command("DISPCSV",              QObject::tr("var:\n\nAffiche la valeur d'une variable ou d'une expression. voir DEFINE")),
+    Command("DISPTEXT",             QObject::tr("text:\n\nAffiche du text")),
     Command("LABEL",                QObject::tr("var:\n\nDéfinit une étiquette (var). voir GOTO.")),
     Command("GOTO",                 QObject::tr("var val:\n\nSe rend à l'étiquette (var) tant que (var) n'est pas égale à (val). voir LABEL.")),
 
@@ -72,6 +73,10 @@ static const Command CommandsList[NB_CMD]={
     Command("TEXT",                 QObject::tr("x y text (arg1) (arg2) :\n\n Dessine un text avec de possible arguments arg1 et arg2 aux endroits spécifiés pas %1 et %2")),
 
     Command("PLOT", QObject::tr("x y w h xmin ymin xmax ymax filename.csv A B")),
+    Command("SAVE_CONSOLE", QObject::tr("filename")),
+
+    Command("SUB_SCRIPT", QObject::tr("sub script")),
+    Command("GET_EV_DC", QObject::tr("get electrizola wire coat thickness")),
 
     Command("PROJECT_OBJECT",       QObject::tr("file.obj x y euler_anglesx3 scale mode:\n\n Projection 2D d'un objet")),
     Command("PROJECT_OBJECT_MAP",   QObject::tr("file.obj mapfile.png res scale meridiens? Nlat Nlon euler_anglesx3 radius idpN idpS W dL dA marge:\n\n"))
