@@ -2217,7 +2217,7 @@ Err MainWindow::sub_process(QStringList content,QSvgGenerator & generator,QPaint
                     0.0105
                 };
 
-                double dmin=DBL_MAX;
+                double dmin=1e100;
                 int nearest_dc_index=0;
                 for(int i=0;i<37;i++)
                 {
